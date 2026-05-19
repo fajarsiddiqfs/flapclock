@@ -1,0 +1,7 @@
+# Flip Clock 
+
+> Flap Clock is a real-time flip clock for desktop and mobile with location, date, dark mode, and a clean fullscreen display.
+
+## Clean Fullscreen Digital Clock for Desktop & Mobile
+
+https://flapclock.com
