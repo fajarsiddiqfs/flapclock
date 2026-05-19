@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Flip Clock</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Inter:wght@600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Oswald', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ── Clock row ──────────────────────────────────────── */
+    .clock-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    /* ── Flip Card shell ────────────────────────────────── */
+    .flip-card {
+      position: relative;
+      /* --cw / --ch set by JS */
+      width:  var(--cw, 300px);
+      height: var(--ch, 220px);
+      border-radius: var(--r, 18px);
+      overflow: hidden;        /* clip children to rounded rect */
+      flex-shrink: 0;
+      perspective: 1200px;
+    }
+
+    /* ── Static top half ────────────────────────────────── */
+    .card-top {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 50%;
+      background: #0F0E0E;
+      overflow: hidden;
+      /* show only bottom half of digit */
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    /* ── Static bottom half ─────────────────────────────── */
+    .card-bottom {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 50%;
+      background: #0F0E0E;
+      overflow: hidden;
+      /* show only top half of digit */
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      border-top: 2px solid #000;
+    }
+
+    /* ── Digit spans ────────────────────────────────────── */
+    /*
+      The digit height = --fs.
+      card-top shows the BOTTOM half  → translateY(50%)  shifts it so the
+        midpoint of the glyph aligns with the bottom of .card-top.
+      card-bottom shows the TOP half  → translateY(-50%) shifts it so the
+        midpoint aligns with the top of .card-bottom.
+      Together they reconstruct the full digit across the hinge.
+    */
+    .card-top span,
+    .card-bottom span,
+    .flap-top span,
+    .flap-bottom span {
+      display: block;
+      font-size: var(--fs, 160px);
+      font-weight: 700;
+      font-family: 'Oswald', sans-serif;
+      color: #d4d4cf;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .card-top span    { transform: translateY(50%);  }
+    .card-bottom span { transform: translateY(-50%); }
+
+    /* ── Hinge line ─────────────────────────────────────── */
+    .hinge {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(50% - 1px);
+      height: 2px;
+      background: #000;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    /* ── AM/PM badge (inside hour card, top-left) ───────── */
+    .ampm-badge {
+      position: absolute;
+      /* inset away from corner — not hugging the edge */
+      top:  clamp(10px, 6%, 20px);
+      left: clamp(12px, 7%, 24px);
+      z-index: 30;
+      font-family: 'Inter', sans-serif;
+      font-size: var(--ampm-fs, 13px);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: rgba(212,212,207,0.80);
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    /* ── Flip flaps ─────────────────────────────────────── */
+    .flap-top {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 50%;
+      background: #0F0E0E;
+      overflow: hidden;
+      display: flex; align-items: flex-end; justify-content: center;
+      transform-origin: bottom center;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform-style: preserve-3d;
+      z-index: 3;
+    }
+
+    .flap-bottom {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 50%;
+      background: #0F0E0E;
+      overflow: hidden;
+      display: flex; align-items: flex-start; justify-content: center;
+      transform-origin: top center;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform-style: preserve-3d;
+      z-index: 2;
+    }
+
+    .flap-top span    { transform: translateY(50%);  }
+    .flap-bottom span { transform: translateY(-50%); }
+
+    /* shadow overlays during flip */
+    .flap-top::after, .flap-bottom::after {
+      content: ''; position: absolute; inset: 0;
+      background: transparent; pointer-events: none;
+    }
+
+    .flap-top.go {
+      animation: fTop .30s cubic-bezier(.55,.05,.45,.95) forwards;
+    }
+    .flap-bottom.go {
+      animation: fBot .30s cubic-bezier(.55,.05,.45,.95) .08s forwards;
+    }
+    .flap-top.go::after    { animation: shTop .30s ease-in    forwards; }
+    .flap-bottom.go::after { animation: shBot .30s ease-out .08s forwards; }
+
+    @keyframes fTop  { 0%{transform:rotateX(0)}      100%{transform:rotateX(-90deg)} }
+    @keyframes fBot  { 0%{transform:rotateX(90deg)}  100%{transform:rotateX(0)} }
+    @keyframes shTop { 0%{background:transparent}    100%{background:rgba(0,0,0,.55)} }
+    @keyframes shBot { 0%{background:rgba(0,0,0,.55)} 100%{background:transparent} }
+
+    /* ── Meta row ───────────────────────────────────────── */
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4em;
+      white-space: nowrap;
+    }
+    .meta {
+      font-family: 'Inter', sans-serif;
+      font-size: var(--meta-fs, 10px);
+      font-weight: 400;
+      letter-spacing: 0.07em;
+      color: rgba(212,212,207,0.28);
+      line-height: 1;
+    }
+    .meta-sep { opacity: 0.45; }
+
+  </style>
+</head>
+<body>
+
+<div class="page" id="page">
+
+  <div class="clock-row" id="clock-row">
+
+    <!-- HOUR card -->
+    <div class="flip-card" id="hcard">
+      <div class="card-top"><span id="ht-val"></span></div>
+      <div class="card-bottom"><span id="hb-val"></span></div>
+      <div class="flap-top"    id="hft"><span id="hft-val"></span></div>
+      <div class="flap-bottom" id="hfb"><span id="hfb-val"></span></div>
+      <div class="hinge"></div>
+      <div class="ampm-badge" id="ampm-badge">AM</div>
+    </div>
+
+    <!-- MINUTE card -->
+    <div class="flip-card" id="mcard">
+      <div class="card-top"><span id="mt-val"></span></div>
+      <div class="card-bottom"><span id="mb-val"></span></div>
+      <div class="flap-top"    id="mft"><span id="mft-val"></span></div>
+      <div class="flap-bottom" id="mfb"><span id="mfb-val"></span></div>
+      <div class="hinge"></div>
+    </div>
+
+  </div>
+
+  <div class="meta-row">
+    <span class="meta" id="date-span"></span>
+    <span class="meta meta-sep">·</span>
+    <span class="meta" id="loc-span">Locating…</span>
+  </div>
+
+</div>
+
+<script>
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  /* ── per-card state ───────────────────────────────────── */
+  const cards = {
+    h: {
+      cur: '',
+      top:  document.getElementById('ht-val'),
+      bot:  document.getElementById('hb-val'),
+      fTop: document.getElementById('hft'),
+      fBot: document.getElementById('hfb'),
+      fTopV: document.getElementById('hft-val'),
+      fBotV: document.getElementById('hfb-val'),
+    },
+    m: {
+      cur: '',
+      top:  document.getElementById('mt-val'),
+      bot:  document.getElementById('mb-val'),
+      fTop: document.getElementById('mft'),
+      fBot: document.getElementById('mfb'),
+      fTopV: document.getElementById('mft-val'),
+      fBotV: document.getElementById('mfb-val'),
+    }
+  };
+
+  function setCard(c, val) {
+    c.top.textContent = val;
+    c.bot.textContent = val;
+    c.fTopV.textContent = val;
+    c.fBotV.textContent = val;
+    c.cur = val;
+  }
+
+  function flipCard(c, newVal) {
+    if (c.cur === newVal) return;
+    const old = c.cur;
+
+    /* flap-top shows the OLD value folding away */
+    c.fTopV.textContent = old;
+    /* flap-bottom reveals the NEW value */
+    c.fBotV.textContent = newVal;
+
+    /* static bottom immediately shows new (hidden behind flap-bottom) */
+    c.bot.textContent = newVal;
+    /* static top switches to new once flap-top has folded away */
+    setTimeout(() => { c.top.textContent = newVal; }, 210);
+
+    /* restart animations */
+    c.fTop.classList.remove('go');
+    c.fBot.classList.remove('go');
+    void c.fTop.offsetWidth; /* reflow */
+    c.fTop.classList.add('go');
+    c.fBot.classList.add('go');
+
+    c.cur = newVal;
+  }
+
+  /* ── sizing ───────────────────────────────────────────── */
+  function sizeCards() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const isMobile = vw <= 768;
+    const row = document.getElementById('clock-row');
+
+    const metaH  = 20;   /* meta row height */
+    const metaGap = 12;  /* gap between clock and meta */
+    const safe   = 20;   /* breathing room */
+    const availH = vh - metaH - metaGap - safe;
+
+    let cardW, cardH, cardGap, fs, ampmFs;
+
+    if (isMobile) {
+      row.style.flexDirection = 'column';
+      row.style.alignItems    = 'center';
+      cardGap = Math.round(vh * 0.015);
+
+      /* each card gets half the available vertical space */
+      cardH = Math.round((availH - cardGap) / 2);
+      cardW = Math.round(vw * 0.88);
+
+      /* don't let card be taller than 65% of its width */
+      const maxH = Math.round(cardW * 0.65);
+      if (cardH > maxH) cardH = maxH;
+
+    } else {
+      row.style.flexDirection = 'row';
+      row.style.alignItems    = 'center';
+      cardGap = Math.round(vw * 0.015);
+
+      cardW = Math.round((vw * 0.92 - cardGap) / 2);
+      cardH = Math.round(cardW * 1.15);   /* roughly square-ish, slightly taller */
+
+      if (cardH > availH) { cardH = availH; cardW = Math.round(cardH / 1.15); }
+    }
+
+    /*
+      Font sizing:
+      The digit glyph height in Oswald ≈ 0.72 × font-size  (cap-height ratio).
+      We want the glyph to fill the card with a ~10% gap top + bottom.
+      Target glyph height = cardH × 0.80  →  fs = (cardH × 0.80) / 0.72 ≈ cardH × 1.11
+      But also cap by width: "12" widest, ≈ 1.10 × fs in Oswald → fs ≤ cardW / 1.10
+    */
+    const fsByH = Math.round(cardH * 1.11);
+    const fsByW = Math.round(cardW / 1.10);
+    fs = Math.min(fsByH, fsByW);
+
+    ampmFs = Math.round(Math.min(cardW, cardH) * 0.072);
+
+    const r = Math.round(Math.min(cardW, cardH) * 0.06);
+
+    document.documentElement.style.setProperty('--cw',      cardW + 'px');
+    document.documentElement.style.setProperty('--ch',      cardH + 'px');
+    document.documentElement.style.setProperty('--fs',      fs    + 'px');
+    document.documentElement.style.setProperty('--r',       r     + 'px');
+    document.documentElement.style.setProperty('--ampm-fs', ampmFs + 'px');
+
+    row.style.gap = cardGap + 'px';
+
+    const metaFs = Math.max(8, Math.round(Math.min(vw, vh) * 0.013));
+    document.documentElement.style.setProperty('--meta-fs', metaFs + 'px');
+
+    document.getElementById('page').style.gap = metaGap + 'px';
+  }
+
+  /* ── tick ─────────────────────────────────────────────── */
+  function tick() {
+    const now   = new Date();
+    const hrs24 = now.getHours();
+    const isPM  = hrs24 >= 12;
+    const hrs12 = String(hrs24 % 12 || 12);
+    const mins  = pad(now.getMinutes());
+
+    flipCard(cards.h, hrs12);
+    flipCard(cards.m, mins);
+
+    document.getElementById('ampm-badge').textContent = isPM ? 'PM' : 'AM';
+    document.getElementById('date-span').textContent  =
+      `${DAYS[now.getDay()]}  ·  ${MONTHS[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  }
+
+  /* init */
+  sizeCards();
+  setCard(cards.h, '12');
+  setCard(cards.m, '00');
+  tick();
+  setInterval(tick, 1000);
+
+  let rt;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(sizeCards, 60); });
+
+  /* ── geolocation ─────────────────────────────────────── */
+  function setLoc(t){ document.getElementById('loc-span').textContent = t; }
+
+  function reverseGeocode(lat, lon) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+          { headers: { 'Accept-Language': 'en' } })
+      .then(r => r.json())
+      .then(d => {
+        const a = d.address || {};
+        const city    = a.city || a.town || a.village || a.municipality || a.county || '';
+        const state   = a.state || '';
+        const country = a.country_code ? a.country_code.toUpperCase() : (a.country || '');
+        let loc = '';
+        if (city && state && country)  loc = `${city}  ·  ${state}  ·  ${country}`;
+        else if (city && country)       loc = `${city}  ·  ${country}`;
+        else if (state && country)      loc = `${state}  ·  ${country}`;
+        else loc = d.display_name ? d.display_name.split(',')[0] : 'Unknown';
+        setLoc(loc);
+      })
+      .catch(() => setLoc('Location Unavailable'));
+  }
+
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      p  => reverseGeocode(p.coords.latitude, p.coords.longitude),
+      () => setLoc('Location Unavailable'),
+      { timeout: 8000 }
+    );
+  } else { setLoc('Location Not Supported'); }
+</script>
+</body>
+</html>
