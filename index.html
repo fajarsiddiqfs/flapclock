@@ -1,30 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+
   <!-- Primary Meta Tags -->
-<title>Flip Clock – Clean Fullscreen Digital Clock for Desktop & Mobile</title>
-<meta name="title" content="Flip Clock – Clean Fullscreen Digital Clock for Desktop & Mobile" />
-<meta name="description" content="Flap Clock is a real-time flip clock for desktop and mobile with location, date, dark mode, and a clean fullscreen display." />
+  <title>Flip Clock – Clean Fullscreen Digital Clock for Desktop & Mobile</title>
+  <meta name="title" content="Flip Clock – Clean Fullscreen Digital Clock for Desktop & Mobile" />
+  <meta name="description" content="Flap Clock is a real-time flip clock for desktop and mobile with location, date, dark mode, and a clean fullscreen display." />
 
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://flapclock.com/" />
-<meta property="og:title" content="Flip Clock – Clean Fullscreen Digital Clock for Desktop & Mobile" />
-<meta property="og:description" content="Flap Clock is a real-time flip clock for desktop and mobile with location, date, dark mode, and a clean fullscreen display." />
-<meta property="og:image" content="https://i.ibb.co/sdkLtYX5/metaflapclock.png" />
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://flapclock.com/" />
+  <meta property="og:title" content="Flip Clock – Clean Fullscreen Digital Clock for Desktop & Mobile" />
+  <meta property="og:description" content="Flap Clock is a real-time flip clock for desktop and mobile with location, date, dark mode, and a clean fullscreen display." />
+  <meta property="og:image" content="https://i.ibb.co/sdkLtYX5/metaflapclock.png" />
 
-<!-- X (Twitter) -->
-<meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content="https://flapclock.com/" />
-<meta property="twitter:title" content="Flip Clock – Clean Fullscreen Digital Clock for Desktop & Mobile" />
-<meta property="twitter:description" content="Flap Clock is a real-time flip clock for desktop and mobile with location, date, dark mode, and a clean fullscreen display." />
-<meta property="twitter:image" content="https://i.ibb.co/sdkLtYX5/metaflapclock.png" />
+  <!-- X (Twitter) -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://flapclock.com/" />
+  <meta property="twitter:title" content="Flip Clock – Clean Fullscreen Digital Clock for Desktop & Mobile" />
+  <meta property="twitter:description" content="Flap Clock is a real-time flip clock for desktop and mobile with location, date, dark mode, and a clean fullscreen display." />
+  <meta property="twitter:image" content="https://i.ibb.co/sdkLtYX5/metaflapclock.png" />
 
-<!-- Meta Tags Generated with https://metatags.io -->
+  <!-- Meta Tags Generated with https://metatags.io -->
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Inter:wght@600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Inter:wght@400;600;700&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -39,92 +40,106 @@
 
     body {
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
     }
 
+    /* ── Page stack ─────────────────────────────────────── */
     .page {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     /* ── Clock row ──────────────────────────────────────── */
     .clock-row {
       display: flex;
-      align-items: center;
       justify-content: center;
-      gap: 10px;
+      align-items: center;
+      gap: var(--gap, 10px);
     }
 
-    /* ── Flip Card shell ────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════
+       FLIP CARD
+       Key: the digit is centred inside a box of exactly --fs
+       height. Each half shows 50% of that box, perfectly
+       aligned at the midpoint.
+    ══════════════════════════════════════════════════════ */
     .flip-card {
       position: relative;
-      /* --cw / --ch set by JS */
       width:  var(--cw, 300px);
       height: var(--ch, 220px);
       border-radius: var(--r, 18px);
-      overflow: hidden;        /* clip children to rounded rect */
+      overflow: hidden;
       flex-shrink: 0;
       perspective: 1200px;
     }
 
-    /* ── Static top half ────────────────────────────────── */
-    .card-top {
+    /* A shared "digit box" technique:
+       We create a div exactly --fs tall centred in the card.
+       top-half clips the top 50%, bottom-half clips the bottom 50%.
+       This guarantees perfect alignment regardless of font metrics. */
+
+    .card-top, .card-bottom,
+    .flap-top, .flap-bottom {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 50%;
+      left: 0;
+      width: 100%;
+      height: 50%;
       background: #0F0E0E;
       overflow: hidden;
-      /* show only bottom half of digit */
+    }
+
+    /* top half sits at top of card */
+    .card-top  { top: 0; }
+    /* bottom half sits at bottom of card */
+    .card-bottom { bottom: 0; border-top: 2px solid #000; }
+
+    /* The digit wrapper: full --fs height, centred in the full card.
+       Relative to each half, it's offset so the correct half shows. */
+    .card-top .digit-wrap { top: calc(50% - var(--fs, 160px) / 2); }
+    .card-bottom .digit-wrap { top: calc(-50% + var(--ch, 220px)/2 - var(--fs, 160px)/2); 
+                                /* simpler: position relative to bottom half */}
+
+    /* Use a different approach — position digit relative to the card centre */
+    /* card-top: clip window is 0..50% of card. digit centre is at 50% of card.
+       So digit-wrap top offset inside card-top = 50% - fs/2  (relative to card-top which starts at 0) */
+    .card-top .digit-wrap {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(50% - var(--fs,160px) / 2);   /* card-top top=0, so card centre = 50% of card = 50% of card-top*2 */
+      height: var(--fs, 160px);
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
     }
 
-    /* ── Static bottom half ─────────────────────────────── */
-    .card-bottom {
+    /* card-bottom: top=50% of card. digit centre at 50% of card.
+       relative to card-bottom: digit starts at (50% of card - fs/2) - 50% of card = -fs/2
+       → top: calc(-1 * var(--fs)/2) but in px terms = top: 0 when card-bottom height = fs/2  */
+    .card-bottom .digit-wrap {
       position: absolute;
-      bottom: 0; left: 0;
-      width: 100%; height: 50%;
-      background: #0F0E0E;
-      overflow: hidden;
-      /* show only top half of digit */
+      left: 0; right: 0;
+      top: calc(-1 * var(--ch, 220px) / 2 + var(--ch, 220px) / 2 - var(--fs, 160px) / 2);
+      height: var(--fs, 160px);
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
-      border-top: 2px solid #000;
     }
 
-    /* ── Digit spans ────────────────────────────────────── */
-    /*
-      The digit height = --fs.
-      card-top shows the BOTTOM half  → translateY(50%)  shifts it so the
-        midpoint of the glyph aligns with the bottom of .card-top.
-      card-bottom shows the TOP half  → translateY(-50%) shifts it so the
-        midpoint aligns with the top of .card-bottom.
-      Together they reconstruct the full digit across the hinge.
-    */
-    .card-top span,
-    .card-bottom span,
-    .flap-top span,
-    .flap-bottom span {
+    .digit-wrap span {
       display: block;
-      font-size: var(--fs, 160px);
-      font-weight: 700;
       font-family: 'Oswald', sans-serif;
-      color: #d4d4cf;
+      font-size:   var(--fs, 160px);
+      font-weight: 700;
+      color: #d0d0cb;
       line-height: 1;
       letter-spacing: -0.02em;
       white-space: nowrap;
     }
 
-    .card-top span    { transform: translateY(50%);  }
-    .card-bottom span { transform: translateY(-50%); }
-
-    /* ── Hinge line ─────────────────────────────────────── */
+    /* Hinge */
     .hinge {
       position: absolute;
       left: 0; right: 0;
@@ -135,44 +150,32 @@
       pointer-events: none;
     }
 
-    /* ── AM/PM badge (inside hour card, top-left) ───────── */
+    /* AM/PM */
     .ampm-badge {
       position: absolute;
-      /* inset away from corner — not hugging the edge */
-      top:  clamp(10px, 6%, 20px);
-      left: clamp(12px, 7%, 24px);
+      top:  clamp(12px, 7%, 22px);
+      left: clamp(14px, 8%, 26px);
       z-index: 30;
       font-family: 'Inter', sans-serif;
       font-size: var(--ampm-fs, 13px);
       font-weight: 700;
-      letter-spacing: 0.05em;
-      color: rgba(212,212,207,0.80);
+      letter-spacing: 0.06em;
+      color: rgba(208,208,203,0.78);
       line-height: 1;
       pointer-events: none;
     }
 
-    /* ── Flip flaps ─────────────────────────────────────── */
+    /* ── Flaps ──────────────────────────────────────────── */
     .flap-top {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 50%;
-      background: #0F0E0E;
-      overflow: hidden;
-      display: flex; align-items: flex-end; justify-content: center;
+      top: 0;
       transform-origin: bottom center;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
       transform-style: preserve-3d;
       z-index: 3;
     }
-
     .flap-bottom {
-      position: absolute;
-      bottom: 0; left: 0;
-      width: 100%; height: 50%;
-      background: #0F0E0E;
-      overflow: hidden;
-      display: flex; align-items: flex-start; justify-content: center;
+      bottom: 0;
       transform-origin: top center;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
@@ -180,27 +183,35 @@
       z-index: 2;
     }
 
-    .flap-top span    { transform: translateY(50%);  }
-    .flap-bottom span { transform: translateY(-50%); }
+    .flap-top .digit-wrap {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(50% - var(--fs,160px) / 2);
+      height: var(--fs, 160px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .flap-bottom .digit-wrap {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(-1 * var(--ch,220px) / 2 + var(--ch,220px) / 2 - var(--fs,160px) / 2);
+      height: var(--fs, 160px);
+      display: flex; align-items: center; justify-content: center;
+    }
 
-    /* shadow overlays during flip */
+    /* shadow overlay */
     .flap-top::after, .flap-bottom::after {
       content: ''; position: absolute; inset: 0;
       background: transparent; pointer-events: none;
     }
 
-    .flap-top.go {
-      animation: fTop .30s cubic-bezier(.55,.05,.45,.95) forwards;
-    }
-    .flap-bottom.go {
-      animation: fBot .30s cubic-bezier(.55,.05,.45,.95) .08s forwards;
-    }
-    .flap-top.go::after    { animation: shTop .30s ease-in    forwards; }
+    .flap-top.go    { animation: fTop .30s cubic-bezier(.55,.05,.45,.95) forwards; }
+    .flap-bottom.go { animation: fBot .30s cubic-bezier(.55,.05,.45,.95) .08s forwards; }
+    .flap-top.go::after    { animation: shTop .30s ease-in forwards; }
     .flap-bottom.go::after { animation: shBot .30s ease-out .08s forwards; }
 
     @keyframes fTop  { 0%{transform:rotateX(0)}      100%{transform:rotateX(-90deg)} }
     @keyframes fBot  { 0%{transform:rotateX(90deg)}  100%{transform:rotateX(0)} }
-    @keyframes shTop { 0%{background:transparent}    100%{background:rgba(0,0,0,.55)} }
+    @keyframes shTop { 0%{background:transparent}     100%{background:rgba(0,0,0,.55)} }
     @keyframes shBot { 0%{background:rgba(0,0,0,.55)} 100%{background:transparent} }
 
     /* ── Meta row ───────────────────────────────────────── */
@@ -216,10 +227,29 @@
       font-size: var(--meta-fs, 10px);
       font-weight: 400;
       letter-spacing: 0.07em;
-      color: rgba(212,212,207,0.28);
+      color: rgba(208,208,203,0.28);
       line-height: 1;
     }
-    .meta-sep { opacity: 0.45; }
+    .meta-sep { opacity: 0.4; }
+
+    /* ── Fullscreen button ──────────────────────────────── */
+    .fs-btn {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.35;
+      transition: opacity .2s;
+      z-index: 100;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fs-btn:hover { opacity: 0.75; }
+    .fs-btn svg { width: 22px; height: 22px; }
 
   </style>
 </head>
@@ -231,20 +261,36 @@
 
     <!-- HOUR card -->
     <div class="flip-card" id="hcard">
-      <div class="card-top"><span id="ht-val"></span></div>
-      <div class="card-bottom"><span id="hb-val"></span></div>
-      <div class="flap-top"    id="hft"><span id="hft-val"></span></div>
-      <div class="flap-bottom" id="hfb"><span id="hfb-val"></span></div>
+      <div class="card-top" id="ht">
+        <div class="digit-wrap"><span id="ht-val"></span></div>
+      </div>
+      <div class="card-bottom" id="hb">
+        <div class="digit-wrap"><span id="hb-val"></span></div>
+      </div>
+      <div class="flap-top" id="hft">
+        <div class="digit-wrap"><span id="hft-val"></span></div>
+      </div>
+      <div class="flap-bottom" id="hfb">
+        <div class="digit-wrap"><span id="hfb-val"></span></div>
+      </div>
       <div class="hinge"></div>
       <div class="ampm-badge" id="ampm-badge">AM</div>
     </div>
 
     <!-- MINUTE card -->
     <div class="flip-card" id="mcard">
-      <div class="card-top"><span id="mt-val"></span></div>
-      <div class="card-bottom"><span id="mb-val"></span></div>
-      <div class="flap-top"    id="mft"><span id="mft-val"></span></div>
-      <div class="flap-bottom" id="mfb"><span id="mfb-val"></span></div>
+      <div class="card-top" id="mt">
+        <div class="digit-wrap"><span id="mt-val"></span></div>
+      </div>
+      <div class="card-bottom" id="mb">
+        <div class="digit-wrap"><span id="mb-val"></span></div>
+      </div>
+      <div class="flap-top" id="mft">
+        <div class="digit-wrap"><span id="mft-val"></span></div>
+      </div>
+      <div class="flap-bottom" id="mfb">
+        <div class="digit-wrap"><span id="mfb-val"></span></div>
+      </div>
       <div class="hinge"></div>
     </div>
 
@@ -258,13 +304,31 @@
 
 </div>
 
+<!-- Fullscreen button — bottom right -->
+<div class="fs-btn" id="fs-btn" title="Fullscreen">
+  <!-- expand icon (shown normally) -->
+  <svg id="fs-expand" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="15 3 21 3 21 9"/>
+    <polyline points="9 21 3 21 3 15"/>
+    <line x1="21" y1="3" x2="14" y2="10"/>
+    <line x1="3"  y1="21" x2="10" y2="14"/>
+  </svg>
+  <!-- compress icon (shown in fullscreen) -->
+  <svg id="fs-compress" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+    <polyline points="4 14 10 14 10 20"/>
+    <polyline points="20 10 14 10 14 4"/>
+    <line x1="10" y1="14" x2="3"  y2="21"/>
+    <line x1="21" y1="3"  x2="14" y2="10"/>
+  </svg>
+</div>
+
 <script>
   const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const MONTHS = ['January','February','March','April','May','June',
                   'July','August','September','October','November','December'];
   function pad(n){ return String(n).padStart(2,'0'); }
 
-  /* ── per-card state ───────────────────────────────────── */
+  /* ── card refs ──────────────────────────────────────── */
   const cards = {
     h: {
       cur: '',
@@ -287,105 +351,132 @@
   };
 
   function setCard(c, val) {
-    c.top.textContent = val;
-    c.bot.textContent = val;
-    c.fTopV.textContent = val;
-    c.fBotV.textContent = val;
+    [c.top, c.bot, c.fTopV, c.fBotV].forEach(el => el.textContent = val);
     c.cur = val;
   }
 
   function flipCard(c, newVal) {
     if (c.cur === newVal) return;
     const old = c.cur;
-
-    /* flap-top shows the OLD value folding away */
     c.fTopV.textContent = old;
-    /* flap-bottom reveals the NEW value */
     c.fBotV.textContent = newVal;
-
-    /* static bottom immediately shows new (hidden behind flap-bottom) */
-    c.bot.textContent = newVal;
-    /* static top switches to new once flap-top has folded away */
+    c.bot.textContent   = newVal;
     setTimeout(() => { c.top.textContent = newVal; }, 210);
-
-    /* restart animations */
     c.fTop.classList.remove('go');
     c.fBot.classList.remove('go');
-    void c.fTop.offsetWidth; /* reflow */
+    void c.fTop.offsetWidth;
     c.fTop.classList.add('go');
     c.fBot.classList.add('go');
-
     c.cur = newVal;
   }
 
-  /* ── sizing ───────────────────────────────────────────── */
+  /* ── sizing ─────────────────────────────────────────── */
   function sizeCards() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const isMobile = vw <= 768;
+
+    // Landscape = side by side; Portrait = stacked
+    const isLandscape = vw > vh;
     const row = document.getElementById('clock-row');
 
-    const metaH  = 20;   /* meta row height */
-    const metaGap = 12;  /* gap between clock and meta */
-    const safe   = 20;   /* breathing room */
-    const availH = vh - metaH - metaGap - safe;
+    const metaH   = 20;
+    const metaGap = 10;
+    const safe    = 24;
+    const availH  = vh - metaH - metaGap - safe;
+    const availW  = vw - safe;
 
     let cardW, cardH, cardGap, fs, ampmFs;
 
-    if (isMobile) {
-      row.style.flexDirection = 'column';
-      row.style.alignItems    = 'center';
-      cardGap = Math.round(vh * 0.015);
-
-      /* each card gets half the available vertical space */
-      cardH = Math.round((availH - cardGap) / 2);
-      cardW = Math.round(vw * 0.88);
-
-      /* don't let card be taller than 65% of its width */
-      const maxH = Math.round(cardW * 0.65);
-      if (cardH > maxH) cardH = maxH;
-
-    } else {
+    if (isLandscape) {
+      /* ── Side by side (landscape / desktop) ── */
       row.style.flexDirection = 'row';
       row.style.alignItems    = 'center';
-      cardGap = Math.round(vw * 0.015);
 
-      cardW = Math.round((vw * 0.92 - cardGap) / 2);
-      cardH = Math.round(cardW * 1.15);   /* roughly square-ish, slightly taller */
+      cardGap = Math.max(6, Math.round(vw * 0.012));
+      cardW   = Math.round((availW - cardGap) / 2);
+      cardH   = Math.round(cardW * 1.12);
+      if (cardH > availH) { cardH = availH; cardW = Math.round(cardH / 1.12); }
 
-      if (cardH > availH) { cardH = availH; cardW = Math.round(cardH / 1.15); }
+    } else {
+      /* ── Stacked (portrait) ── */
+      row.style.flexDirection = 'column';
+      row.style.alignItems    = 'center';
+
+      cardGap = Math.max(6, Math.round(vh * 0.012));
+      cardH   = Math.round((availH - cardGap) / 2);
+      cardW   = Math.round(vw * 0.90);
+
+      // Don't let card be too squat
+      const minH = Math.round(cardW * 0.42);
+      const maxH = Math.round(cardW * 0.70);
+      cardH = Math.max(minH, Math.min(cardH, maxH));
     }
 
+    cardW = Math.max(80,  cardW);
+    cardH = Math.max(60,  cardH);
+
     /*
-      Font sizing:
-      The digit glyph height in Oswald ≈ 0.72 × font-size  (cap-height ratio).
-      We want the glyph to fill the card with a ~10% gap top + bottom.
-      Target glyph height = cardH × 0.80  →  fs = (cardH × 0.80) / 0.72 ≈ cardH × 1.11
-      But also cap by width: "12" widest, ≈ 1.10 × fs in Oswald → fs ≤ cardW / 1.10
+      CENTRED DIGIT APPROACH
+      ─────────────────────
+      We want the digit centred in the full card (width × height).
+      Each half clips exactly 50% of the card.
+
+      The digit-wrap div is positioned relative to its parent half:
+        card-top  (h=50% of card, top=0):
+          digit-wrap.top = (card_centre_y) - (fs/2)
+                         = (cardH/2) - (fs/2)       ← in card coords
+          but relative to card-top which starts at 0:
+          digit-wrap.top = cardH/2 - fs/2            ← same since card-top.top=0
+
+        card-bottom (h=50% of card, top=50% of card):
+          digit_centre in card = cardH/2
+          digit_centre relative to card-bottom = cardH/2 - cardH/2 = 0
+          digit-wrap.top = 0 - fs/2 = -fs/2
+
+      We set these via CSS custom properties so the CSS calc() works.
     */
-    const fsByH = Math.round(cardH * 1.11);
-    const fsByW = Math.round(cardW / 1.10);
+
+    // Font: fill 80% of card height, constrained so "12" fits in width
+    // Oswald 700 cap-height ≈ 72% of font-size, advance width of "12" ≈ 1.08 × fs
+    const fsByH = Math.round(cardH / 0.72 * 0.78);   // glyph = 78% of card height
+    const fsByW = Math.round(cardW / 1.10);            // "12" fits in width
     fs = Math.min(fsByH, fsByW);
 
-    ampmFs = Math.round(Math.min(cardW, cardH) * 0.072);
+    ampmFs = Math.round(Math.min(cardW, cardH) * 0.075);
+    const r = Math.round(Math.min(cardW, cardH) * 0.07);
 
-    const r = Math.round(Math.min(cardW, cardH) * 0.06);
+    // CSS vars
+    const root = document.documentElement;
+    root.style.setProperty('--cw',      cardW + 'px');
+    root.style.setProperty('--ch',      cardH + 'px');
+    root.style.setProperty('--fs',      fs    + 'px');
+    root.style.setProperty('--r',       r     + 'px');
+    root.style.setProperty('--ampm-fs', ampmFs + 'px');
+    root.style.setProperty('--gap',     cardGap + 'px');
 
-    document.documentElement.style.setProperty('--cw',      cardW + 'px');
-    document.documentElement.style.setProperty('--ch',      cardH + 'px');
-    document.documentElement.style.setProperty('--fs',      fs    + 'px');
-    document.documentElement.style.setProperty('--r',       r     + 'px');
-    document.documentElement.style.setProperty('--ampm-fs', ampmFs + 'px');
+    // Push the digit-wrap offsets as vars so CSS calc() works
+    const topOffset = Math.round(cardH / 2 - fs / 2);   // card-top
+    const botOffset = -Math.round(fs / 2);               // card-bottom
+    root.style.setProperty('--dw-top', topOffset + 'px');
+    root.style.setProperty('--dw-bot', botOffset + 'px');
+
+    // Apply offsets directly since CSS vars in calc for position can be tricky
+    document.querySelectorAll('.card-top .digit-wrap, .flap-top .digit-wrap').forEach(el => {
+      el.style.top = topOffset + 'px';
+    });
+    document.querySelectorAll('.card-bottom .digit-wrap, .flap-bottom .digit-wrap').forEach(el => {
+      el.style.top = botOffset + 'px';
+    });
 
     row.style.gap = cardGap + 'px';
 
-    const metaFs = Math.max(8, Math.round(Math.min(vw, vh) * 0.013));
-    document.documentElement.style.setProperty('--meta-fs', metaFs + 'px');
+    const metaFs = Math.max(8, Math.round(Math.min(vw, vh) * 0.014));
+    root.style.setProperty('--meta-fs', metaFs + 'px');
 
     document.getElementById('page').style.gap = metaGap + 'px';
   }
 
-  /* ── tick ─────────────────────────────────────────────── */
+  /* ── tick ───────────────────────────────────────────── */
   function tick() {
     const now   = new Date();
     const hrs24 = now.getHours();
@@ -401,7 +492,7 @@
       `${DAYS[now.getDay()]}  ·  ${MONTHS[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
   }
 
-  /* init */
+  /* ── init ───────────────────────────────────────────── */
   sizeCards();
   setCard(cards.h, '12');
   setCard(cards.m, '00');
@@ -409,9 +500,38 @@
   setInterval(tick, 1000);
 
   let rt;
-  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(sizeCards, 60); });
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => { sizeCards(); tick(); }, 60);
+  });
 
-  /* ── geolocation ─────────────────────────────────────── */
+  /* ── fullscreen ─────────────────────────────────────── */
+  const fsBtn      = document.getElementById('fs-btn');
+  const fsExpand   = document.getElementById('fs-expand');
+  const fsCompress = document.getElementById('fs-compress');
+
+  function updateFsIcon() {
+    const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    fsExpand.style.display   = inFs ? 'none'  : 'block';
+    fsCompress.style.display = inFs ? 'block' : 'none';
+  }
+
+  fsBtn.addEventListener('click', () => {
+    const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (!inFs) {
+      const el = document.documentElement;
+      if (el.requestFullscreen)       el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    } else {
+      if (document.exitFullscreen)       document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+  });
+
+  document.addEventListener('fullscreenchange',       updateFsIcon);
+  document.addEventListener('webkitfullscreenchange', updateFsIcon);
+
+  /* ── geolocation ────────────────────────────────────── */
   function setLoc(t){ document.getElementById('loc-span').textContent = t; }
 
   function reverseGeocode(lat, lon) {
