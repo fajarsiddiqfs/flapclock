@@ -553,10 +553,9 @@
   const fsExpand   = document.getElementById('fs-expand');
   const fsCompress = document.getElementById('fs-compress');
 
-  // iOS Safari & Chrome on iPhone AND iPad do NOT support the Fullscreen API.
-  // We detect any iOS device (including iPadOS which reports MacIntel + touch).
-  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // Only iPhone gets the "Add to Home Screen" nudge.
+  // iPad and desktop both support the native Fullscreen API fine.
+  const isIPhone = /iPhone|iPod/.test(navigator.userAgent);
 
   // Check if already running as installed home screen app (standalone)
   const isStandalone = window.navigator.standalone === true;
@@ -578,13 +577,7 @@
     const existing = document.getElementById('ios-toast');
     if (existing) existing.remove();
 
-    const isIPad = /iPad/.test(navigator.userAgent) ||
-                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-    // iPad share icon is at top-right; iPhone at bottom-centre
-    const msg = isIPad
-      ? '📱 Tap the Share icon (top right) → "Add to Home Screen" for fullscreen'
-      : '📱 Tap the Share icon (bottom bar) → "Add to Home Screen" for fullscreen';
+    const msg = '📱 Tap the Share icon (bottom bar) → "Add to Home Screen" for fullscreen';
 
     const toast = document.createElement('div');
     toast.id = 'ios-toast';
@@ -617,7 +610,7 @@
   }
 
   fsBtn.addEventListener('click', () => {
-    if (isIOS) {
+    if (isIPhone) {
       if (isStandalone) {
         // Already running as home screen app — nothing to do, already fullscreen
         return;
