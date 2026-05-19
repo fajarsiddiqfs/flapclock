@@ -553,11 +553,16 @@
   const fsExpand   = document.getElementById('fs-expand');
   const fsCompress = document.getElementById('fs-compress');
 
-  // Detect iPhone only — iPad and desktop use native Fullscreen API
-  const isIPhone = /iPhone/.test(navigator.userAgent);
+  // iOS Safari & Chrome on iPhone AND iPad do NOT support the Fullscreen API.
+  // We detect any iOS device (including iPadOS which reports MacIntel + touch).
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  // Check if already running as installed home screen app (standalone)
+  const isStandalone = window.navigator.standalone === true;
 
   function isInFullscreen() {
-    return !!(document.fullscreenElement   ||
+    return !!(document.fullscreenElement ||
               document.webkitFullscreenElement ||
               document.mozFullScreenElement);
   }
@@ -568,42 +573,64 @@
     fsCompress.style.display = inFs ? 'block' : 'none';
   }
 
-  // iOS: Fullscreen API not supported in Chrome/Safari in-app browser.
-  // Best approach: scroll to hide browser chrome (address bar) and
-  // show a one-time nudge to "Add to Home Screen" for true fullscreen.
-  function iosFullscreenSimulate() {
-    // Scroll to top to collapse address bar
-    window.scrollTo(0, 1);
-    setTimeout(() => window.scrollTo(0, 0), 50);
+  function showIOSToast() {
+    // Remove any existing toast first
+    const existing = document.getElementById('ios-toast');
+    if (existing) existing.remove();
 
-    // Show nudge toast once per session
-    if (!sessionStorage.getItem('fs-nudge-shown')) {
-      sessionStorage.setItem('fs-nudge-shown', '1');
-      const toast = document.createElement('div');
-      toast.textContent = 'For true fullscreen: tap Share → Add to Home Screen';
-      toast.style.cssText = [
-        'position:fixed','bottom:60px','left:50%',
-        'transform:translateX(-50%)',
-        'background:rgba(30,30,30,0.92)',
-        'color:rgba(255,255,255,0.85)',
-        'font-family:Inter,sans-serif',
-        'font-size:12px','padding:10px 16px',
-        'border-radius:8px','z-index:999',
-        'white-space:nowrap','pointer-events:none',
-        'transition:opacity .4s'
-      ].join(';');
-      document.body.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = '0'; }, 3500);
-      setTimeout(() => toast.remove(), 4000);
-    }
+    const isIPad = /iPad/.test(navigator.userAgent) ||
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // iPad share icon is at top-right; iPhone at bottom-centre
+    const msg = isIPad
+      ? '📱 Tap the Share icon (top right) → "Add to Home Screen" for fullscreen'
+      : '📱 Tap the Share icon (bottom bar) → "Add to Home Screen" for fullscreen';
+
+    const toast = document.createElement('div');
+    toast.id = 'ios-toast';
+    toast.innerHTML = msg;
+    toast.style.cssText = [
+      'position:fixed',
+      'bottom:70px',
+      'left:50%',
+      'transform:translateX(-50%)',
+      'background:rgba(20,20,20,0.95)',
+      'color:rgba(255,255,255,0.90)',
+      'font-family:Inter,sans-serif',
+      'font-size:13px',
+      'font-weight:500',
+      'padding:12px 18px',
+      'border-radius:10px',
+      'z-index:9999',
+      'max-width:88vw',
+      'text-align:center',
+      'line-height:1.5',
+      'pointer-events:none',
+      'opacity:1',
+      'transition:opacity 0.5s ease'
+    ].join(';');
+    document.body.appendChild(toast);
+
+    // Fade out after 4 seconds, remove after 4.6s
+    setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4600);
   }
 
   fsBtn.addEventListener('click', () => {
-    if (isIPhone) {
-      iosFullscreenSimulate();
+    if (isIOS) {
+      if (isStandalone) {
+        // Already running as home screen app — nothing to do, already fullscreen
+        return;
+      }
+      // Show "Add to Home Screen" instruction every time they tap
+      showIOSToast();
+      // Also try to collapse the address bar
+      window.scrollTo(0, 1);
+      setTimeout(() => window.scrollTo(0, 0), 80);
       return;
     }
 
+    // Desktop / Android — native Fullscreen API
     const inFs = isInFullscreen();
     if (!inFs) {
       const el = document.documentElement;
