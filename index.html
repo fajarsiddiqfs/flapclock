@@ -115,16 +115,14 @@
     .card-top .digit-wrap {
       position: absolute;
       left: 0; right: 0;
-      top: calc(50% - var(--fs,160px) / 2);   /* card-top top=0, so card centre = 50% of card = 50% of card-top*2 */
+      top: calc(50% - var(--fs,160px) / 2);
       height: var(--fs, 160px);
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
 
-    /* card-bottom: top=50% of card. digit centre at 50% of card.
-       relative to card-bottom: digit starts at (50% of card - fs/2) - 50% of card = -fs/2
-       → top: calc(-1 * var(--fs)/2) but in px terms = top: 0 when card-bottom height = fs/2  */
     .card-bottom .digit-wrap {
       position: absolute;
       left: 0; right: 0;
@@ -133,16 +131,21 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
 
     .digit-wrap span {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-family: 'Oswald', sans-serif;
       font-size:   var(--fs, 160px);
       font-weight: 700;
       line-height: 1;
       letter-spacing: -0.02em;
       white-space: nowrap;
+      width: 100%;
+      text-align: center;
     }
 
     /* Hinge */
@@ -233,6 +236,7 @@
       top: calc(50% - var(--fs,160px) / 2);
       height: var(--fs, 160px);
       display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
     }
     .flap-bottom .digit-wrap {
       position: absolute;
@@ -240,6 +244,7 @@
       top: calc(-1 * var(--ch,220px) / 2 + var(--ch,220px) / 2 - var(--fs,160px) / 2);
       height: var(--fs, 160px);
       display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
     }
 
     /* shadow overlay */
@@ -553,6 +558,9 @@
     root.style.setProperty('--meta-fs', metaFs + 'px');
 
     document.getElementById('page').style.gap = Math.round(vh * 0.038) + 'px';
+
+    // Re-apply language font scaling whenever card size changes
+    if (typeof applyLangFont === 'function') applyLangFont();
   }
 
   /* ── numeral systems ─────────────────────────────────── */
@@ -569,16 +577,18 @@
     { name: 'اردو',             digits: ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'] },
   ];
 
-  // Languages with unique numeral glyphs (non-Latin) need a smaller font for legibility
-  const LANG_FONT = [
-    null,                // English   – Oswald fine
-    '"Noto Serif SC", "Noto Sans SC", serif',   // 中文
-    '"Noto Sans Devanagari", sans-serif',        // Hindi
-    null, null,          // Español, Français
-    '"Noto Sans Arabic", sans-serif',            // Arabic
-    '"Noto Sans Bengali", sans-serif',           // Bengali
-    null, null,          // Português, Русский
-    '"Noto Nastaliq Urdu", "Noto Sans Arabic", sans-serif', // Urdu
+  // Per-language tweaks: [fontFamily, letterSpacing, fontSizeScale, translateY% to nudge vertical centre]
+  const LANG_STYLE = [
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   }, // English
+    { ff: '"Noto Serif SC","Noto Sans SC",serif',                  ls: '0.05em',  scale: 0.82, ty: '0%'   }, // 中文
+    { ff: '"Noto Sans Devanagari",sans-serif',                     ls: '0em',     scale: 0.80, ty: '4%'   }, // Hindi
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   }, // Español
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   }, // Français
+    { ff: '"Noto Sans Arabic",sans-serif',                         ls: '0.04em',  scale: 0.82, ty: '2%'   }, // Arabic
+    { ff: '"Noto Sans Bengali",sans-serif',                        ls: '0em',     scale: 0.80, ty: '3%'   }, // Bengali
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   }, // Português
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   }, // Русский
+    { ff: '"Noto Nastaliq Urdu","Noto Sans Arabic",sans-serif',    ls: '0.04em',  scale: 0.70, ty: '-18%' }, // Urdu
   ];
 
   let langIdx = 0;
@@ -589,9 +599,17 @@
   }
 
   function applyLangFont() {
-    const ff = LANG_FONT[langIdx];
+    const s = LANG_STYLE[langIdx];
+    const fsVal = getComputedStyle(document.documentElement).getPropertyValue('--fs').trim();
+    const fsPx  = parseFloat(fsVal) || 160;
+    const scaled = Math.round(fsPx * s.scale);
+
     document.querySelectorAll('.digit-wrap span').forEach(el => {
-      el.style.fontFamily = ff || '';
+      el.style.fontFamily    = s.ff || "'Oswald', sans-serif";
+      el.style.letterSpacing = s.ls;
+      el.style.fontSize      = scaled + 'px';
+      el.style.lineHeight    = '1';
+      el.style.transform     = s.ty !== '0%' ? `translateY(${s.ty})` : '';
     });
   }
 
