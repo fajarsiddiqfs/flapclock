@@ -753,104 +753,115 @@
     }
     body.light-mode .modal-about-body p { color: rgba(0,0,0,0.42); }
     .modal-about-body p:last-child { margin-bottom: 0; }
-    /* Share row */
-    .modal-share-row {
+    /* ── Standalone share block ── */
+    .modal-share-standalone {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 8px;
-      margin-top: 10px;
-      flex-wrap: wrap;
+      margin-top: 8px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    body.light-mode .modal-share-standalone {
+      background: rgba(0,0,0,0.03);
+      border-color: rgba(0,0,0,0.07);
     }
     .modal-share-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      color: rgba(255,255,255,0.30);
-      text-transform: uppercase;
-    }
-    body.light-mode .modal-share-label { color: rgba(0,0,0,0.35); }
-    .share-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 11px;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.55);
       font-family: "Inter", sans-serif;
       font-size: 10px;
       font-weight: 600;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.28);
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    body.light-mode .modal-share-label { color: rgba(0,0,0,0.30); }
+    .share-icons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex: 1;
+      justify-content: flex-end;
+    }
+    .share-icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
       cursor: pointer;
       text-decoration: none;
+      color: rgba(255,255,255,0.55);
       transition: background .18s, border-color .18s, color .18s, transform .15s;
+      flex-shrink: 0;
     }
-    .share-btn:hover {
-      background: rgba(255,255,255,0.13);
-      border-color: rgba(255,255,255,0.22);
-      color: rgba(255,255,255,0.90);
-      transform: translateY(-1px);
+    .share-icon-btn:hover {
+      transform: translateY(-2px) scale(1.08);
     }
-    .share-btn svg { width: 12px; height: 12px; }
-    body.light-mode .share-btn {
-      border-color: rgba(0,0,0,0.12);
+    .share-icon-btn svg { width: 16px; height: 16px; display: block; }
+    body.light-mode .share-icon-btn {
+      border-color: rgba(0,0,0,0.10);
       background: rgba(0,0,0,0.05);
-      color: rgba(0,0,0,0.55);
+      color: rgba(0,0,0,0.50);
     }
-    body.light-mode .share-btn:hover {
-      background: rgba(0,0,0,0.10);
-      border-color: rgba(0,0,0,0.20);
-      color: rgba(0,0,0,0.85);
-    }
-    .share-btn.twitter  { --accent: #1d9bf0; }
-    .share-btn.facebook { --accent: #1877f2; }
-    .share-btn.copy-link { --accent: rgba(255,255,255,0.5); }
-    .share-btn:hover { border-color: var(--accent); color: var(--accent); }
-    body.light-mode .share-btn.twitter:hover  { border-color: #1d9bf0; color: #1d9bf0; }
-    body.light-mode .share-btn.facebook:hover { border-color: #1877f2; color: #1877f2; }
+    /* Per-brand hover colours */
+    .share-icon-btn.sib-ig:hover    { background: #e1306c; border-color: #e1306c; color: #fff; }
+    .share-icon-btn.sib-x:hover     { background: #000;    border-color: #000;    color: #fff; }
+    .share-icon-btn.sib-fb:hover    { background: #1877f2; border-color: #1877f2; color: #fff; }
+    .share-icon-btn.sib-th:hover    { background: #000;    border-color: #000;    color: #fff; }
+    .share-icon-btn.sib-wa:hover    { background: #25d366; border-color: #25d366; color: #fff; }
+    .share-icon-btn.sib-tg:hover    { background: #26a5e4; border-color: #26a5e4; color: #fff; }
+    .share-icon-btn.sib-copy:hover  { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); color: #fff; }
+    body.light-mode .share-icon-btn.sib-copy:hover { background: rgba(0,0,0,0.10); border-color: rgba(0,0,0,0.30); color: #000; }
+    /* Copied feedback */
+    .share-icon-btn.copied { background: #22c55e !important; border-color: #22c55e !important; color: #fff !important; }
 
-    /* ── Modal footer ────────────────────────────────────── */
+    /* ── Modal footer — 3-col ── */
     .modal-footer {
-      margin-top: 14px;
-      padding-top: 14px;
+      margin-top: 10px;
+      padding-top: 12px;
       border-top: 1px solid rgba(255,255,255,0.07);
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       font-family: "Inter", sans-serif;
       font-size: 10px;
       font-weight: 500;
       letter-spacing: 0.02em;
-      color: rgba(255,255,255,0.28);
     }
-    body.light-mode .modal-footer {
-      border-top-color: rgba(0,0,0,0.08);
-      color: rgba(0,0,0,0.35);
-    }
-    .modal-footer-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .modal-footer-copy {
-      font-size: 10px;
-      color: rgba(255,255,255,0.20);
-      letter-spacing: 0.03em;
-    }
-    body.light-mode .modal-footer-copy { color: rgba(0,0,0,0.25); }
+    body.light-mode .modal-footer { border-top-color: rgba(0,0,0,0.08); }
     .modal-footer a {
-      color: rgba(255,255,255,0.45);
       text-decoration: none;
-      transition: color .2s;
+      transition: color .2s, opacity .2s;
+      white-space: nowrap;
     }
-    .modal-footer a:hover { color: rgba(255,255,255,0.80); }
-    body.light-mode .modal-footer a { color: rgba(0,0,0,0.50); }
-    body.light-mode .modal-footer a:hover { color: rgba(0,0,0,0.85); }
-    .modal-footer-sep { opacity: 0.4; }
+    .mf-left {
+      color: rgba(255,255,255,0.32);
+      justify-self: start;
+    }
+    .mf-center {
+      color: rgba(255,255,255,0.55);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      justify-self: center;
+    }
+    .mf-right {
+      color: rgba(255,255,255,0.32);
+      justify-self: end;
+    }
+    .mf-left:hover, .mf-right:hover { color: rgba(255,255,255,0.70); }
+    .mf-center:hover { color: rgba(255,255,255,0.90); }
+    body.light-mode .mf-left, body.light-mode .mf-right { color: rgba(0,0,0,0.35); }
+    body.light-mode .mf-center { color: rgba(0,0,0,0.60); }
+    body.light-mode .mf-left:hover, body.light-mode .mf-right:hover { color: rgba(0,0,0,0.75); }
+    body.light-mode .mf-center:hover { color: rgba(0,0,0,0.90); }
 
 
     /* ── Tabs ────────────────────────────────────────────── */
@@ -1387,44 +1398,62 @@
       </div>
     </div>
 
-    <!-- ── About + Share ── -->
+    <!-- ── About ── -->
     <div class="modal-about">
       <div class="modal-about-header" id="about-toggle">
         <div class="modal-about-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          About: Flip Clock — why I made this
+          About: Flip Clock &#8211; For Desktop &amp; Mobile
         </div>
         <svg class="modal-about-chevron" id="about-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="modal-about-body" id="about-body">
         <p>I built Flip Clock because I wanted a distraction-free, beautiful clock on my screen — something that felt calm and analogue in a world full of blinking notifications.</p>
         <p>Most clock apps are either too minimal (no context) or too cluttered. I wanted something right in the middle: shows the time elegantly, gives you the date and weather, and stays out of your way.</p>
-        <p>It's also a personal love letter to the mechanical flip clocks of the 70s — that satisfying <em>clack</em> of the flap turning. I hope it brings you a little peace every time you glance at it. 🕰️</p>
-        <div class="modal-share-row">
-          <span class="modal-share-label">Share:</span>
-          <a class="share-btn twitter" id="share-twitter" href="#" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.845L1.254 2.25H8.08l4.258 5.63 5.906-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            X / Twitter
-          </a>
-          <a class="share-btn facebook" id="share-facebook" href="#" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-            Facebook
-          </a>
-          <a class="share-btn copy-link" id="share-copy" href="#">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy Link
-          </a>
-        </div>
+        <p>It's also a personal love letter to the mechanical flip clocks of the 70s — that satisfying <em>clack</em> of the flap turning. I hope it brings you a little peace every time you glance at it.</p>
       </div>
     </div>
 
-    <div class="modal-footer">
-      <div class="modal-footer-row">
-        Powered by <a href="https://euphorya.co" target="_blank" rel="noopener">Euphorya</a>
-        <span class="modal-footer-sep">|</span>
-        Made by <a href="https://fajarsiddiq.com" target="_blank" rel="noopener">Fajar Siddiq</a>
+    <!-- ── Share icons ── -->
+    <div class="modal-share-standalone">
+      <span class="modal-share-label">Share</span>
+      <div class="share-icons">
+        <!-- Instagram Stories -->
+        <a class="share-icon-btn sib-ig" id="share-ig" href="#" title="Share on Instagram Stories">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
+        <!-- X / Twitter -->
+        <a class="share-icon-btn sib-x" id="share-twitter" href="#" target="_blank" rel="noopener" title="Share on X">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.845L1.254 2.25H8.08l4.258 5.63 5.906-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
+        <!-- Facebook -->
+        <a class="share-icon-btn sib-fb" id="share-facebook" href="#" target="_blank" rel="noopener" title="Share on Facebook">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <!-- Threads -->
+        <a class="share-icon-btn sib-th" id="share-threads" href="#" target="_blank" rel="noopener" title="Share on Threads">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.028-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.74-1.755-.453-.518-1.125-.798-1.996-.83l-.034-.001c-.91 0-2.447.254-3.585 1.607l-1.543-1.28C8.513 5.364 10.595 4.83 12.07 4.83l.07.001c1.424.045 2.5.513 3.21 1.392.61.756.963 1.835 1.05 3.212.165.083.327.17.486.259 1.341.736 2.305 1.739 2.79 2.897.786 1.848.729 4.733-1.523 6.927C16.551 21.001 14.468 24 12.186 24zm.024-9.61c-.061 0-.12.002-.181.006-1.01.057-1.834.35-2.385.846-.46.399-.695.927-.663 1.493.05.856.62 1.45 1.368 1.94.517.335 1.248.517 2.012.476 1.086-.059 1.876-.513 2.348-1.108.441-.557.675-1.35.696-2.36a11.604 11.604 0 0 0-3.195-.293z"/></svg>
+        </a>
+        <!-- WhatsApp -->
+        <a class="share-icon-btn sib-wa" id="share-whatsapp" href="#" target="_blank" rel="noopener" title="Share on WhatsApp">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        </a>
+        <!-- Telegram -->
+        <a class="share-icon-btn sib-tg" id="share-telegram" href="#" target="_blank" rel="noopener" title="Share on Telegram">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+        </a>
+        <!-- Copy Link -->
+        <a class="share-icon-btn sib-copy" id="share-copy" href="#" title="Copy link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </a>
       </div>
-      <div class="modal-footer-copy">© <span id="footer-year"></span> <a href="https://flapclock.com" target="_blank" rel="noopener">FlapClock.com</a></div>
+    </div>
+
+    <!-- ── Footer ── -->
+    <div class="modal-footer">
+      <a class="mf-left" href="https://euphorya.co" target="_blank" rel="noopener">Powered by Euphorya</a>
+      <a class="mf-center" href="https://flapclock.com" target="_blank" rel="noopener">FlapClock.com</a>
+      <a class="mf-right" href="https://fajarsiddiq.com" target="_blank" rel="noopener">Made by Fajarsiddiq</a>
     </div>
 
   </div>
@@ -2523,13 +2552,65 @@
   (function() {
     const siteUrl  = 'https://flapclock.com';
     const shareMsg = 'Check out Flip Clock — a beautiful fullscreen flip clock for desktop & mobile 🕰️';
+    const shareEnc = encodeURIComponent(shareMsg);
+    const urlEnc   = encodeURIComponent(siteUrl);
 
+    // X / Twitter
     const tw = document.getElementById('share-twitter');
-    if (tw) tw.href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareMsg) + '&url=' + encodeURIComponent(siteUrl);
+    if (tw) tw.href = 'https://twitter.com/intent/tweet?text=' + shareEnc + '&url=' + urlEnc;
 
+    // Facebook
     const fb = document.getElementById('share-facebook');
-    if (fb) fb.href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(siteUrl);
+    if (fb) fb.href = 'https://www.facebook.com/sharer/sharer.php?u=' + urlEnc;
 
+    // Threads (web share via threads.net)
+    const th = document.getElementById('share-threads');
+    if (th) th.href = 'https://www.threads.net/intent/post?text=' + shareEnc + '%20' + urlEnc;
+
+    // WhatsApp
+    const wa = document.getElementById('share-whatsapp');
+    if (wa) wa.href = 'https://api.whatsapp.com/send?text=' + shareEnc + '%20' + urlEnc;
+
+    // Telegram
+    const tg = document.getElementById('share-telegram');
+    if (tg) tg.href = 'https://t.me/share/url?url=' + urlEnc + '&text=' + shareEnc;
+
+    // Instagram Stories — no direct web URL; open Instagram and show a toast
+    const ig = document.getElementById('share-ig');
+    if (ig) {
+      ig.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Try native share sheet on mobile (ideal for IG Stories)
+        if (navigator.share) {
+          navigator.share({ title: 'Flip Clock', text: shareMsg, url: siteUrl }).catch(() => {});
+        } else {
+          // Desktop fallback: copy link and prompt user
+          navigator.clipboard && navigator.clipboard.writeText(siteUrl).catch(() => {});
+          showIgToast();
+        }
+      });
+    }
+
+    function showIgToast() {
+      const old = document.getElementById('ig-share-toast');
+      if (old) old.remove();
+      const t = document.createElement('div');
+      t.id = 'ig-share-toast';
+      t.textContent = '📋 Link copied! Open Instagram › Stories › Link sticker';
+      t.style.cssText = [
+        'position:fixed','bottom:80px','left:50%','transform:translateX(-50%)',
+        'background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)',
+        'color:#fff','font-family:Inter,sans-serif','font-size:12px','font-weight:600',
+        'padding:10px 18px','border-radius:22px','z-index:9999',
+        'pointer-events:none','opacity:1','transition:opacity 0.4s ease',
+        'white-space:nowrap','box-shadow:0 4px 20px rgba(0,0,0,0.35)'
+      ].join(';');
+      document.body.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; }, 3000);
+      setTimeout(() => { if (t.parentNode) t.remove(); }, 3600);
+    }
+
+    // Copy Link
     const cp = document.getElementById('share-copy');
     if (cp) {
       cp.addEventListener('click', async (e) => {
@@ -2537,7 +2618,6 @@
         try {
           await navigator.clipboard.writeText(siteUrl);
         } catch(err) {
-          // Fallback
           const ta = document.createElement('textarea');
           ta.value = siteUrl;
           ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
@@ -2546,14 +2626,12 @@
           document.execCommand('copy');
           ta.remove();
         }
-        const orig = cp.innerHTML;
-        cp.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
-        cp.style.color = '#4ade80';
-        cp.style.borderColor = '#4ade80';
+        cp.classList.add('copied');
+        const origInner = cp.innerHTML;
+        cp.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><polyline points="20 6 9 17 4 12"/></svg>';
         setTimeout(() => {
-          cp.innerHTML = orig;
-          cp.style.color = '';
-          cp.style.borderColor = '';
+          cp.innerHTML = origInner;
+          cp.classList.remove('copied');
         }, 2000);
       });
     }
