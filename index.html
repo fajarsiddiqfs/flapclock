@@ -432,12 +432,16 @@
     body.light-mode .sound-item.playing { background: rgba(0,0,0,0.10); border-color: rgba(0,0,0,0.20); }
 
     .sound-icon {
-      font-size: 22px;
-      line-height: 1;
       flex-shrink: 0;
       width: 30px;
-      text-align: center;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--meta-col);
+      transition: color .35s;
     }
+    .sound-icon svg { width: 20px; height: 20px; }
     .sound-info { flex: 1; min-width: 0; }
     .sound-name {
       font-family: 'Inter', sans-serif;
@@ -1127,8 +1131,8 @@
       <div class="setting-label" style="margin-bottom:14px">Ambient & Nature Sounds</div>
       <div class="sound-list" id="sound-list">
 
-        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" data-title="Forest Rain">
-          <div class="sound-icon">🌧️</div>
+        <div class="sound-item" data-src="https://cdn.pixabay.com/audio/2022/03/10/audio_8b54e0c19f.mp3" data-title="Forest Rain">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="16" y1="19" x2="16" y2="21"/><line x1="16" y1="13" x2="16" y2="15"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="12" y1="15" x2="12" y2="17"/></svg></div>
           <div class="sound-info">
             <div class="sound-name">Forest Rain</div>
             <div class="sound-desc">Soft rain falling through trees</div>
@@ -1141,8 +1145,8 @@
           </div>
         </div>
 
-        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" data-title="Ocean Waves">
-          <div class="sound-icon">🌊</div>
+        <div class="sound-item" data-src="https://cdn.pixabay.com/audio/2022/01/18/audio_d0c6ff1bab.mp3" data-title="Ocean Waves">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg></div>
           <div class="sound-info">
             <div class="sound-name">Ocean Waves</div>
             <div class="sound-desc">Gentle waves on a quiet shore</div>
@@ -1155,8 +1159,8 @@
           </div>
         </div>
 
-        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" data-title="Deep Forest">
-          <div class="sound-icon">🌿</div>
+        <div class="sound-item" data-src="https://cdn.pixabay.com/audio/2022/03/09/audio_c610232b7c.mp3" data-title="Deep Forest">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14l-5-10-5 10"/><path d="M3 18l4-8 4 8"/><path d="M13 18l4-8 4 8"/><line x1="12" y1="14" x2="12" y2="22"/></svg></div>
           <div class="sound-info">
             <div class="sound-name">Deep Forest</div>
             <div class="sound-desc">Birds and rustling leaves</div>
@@ -1169,8 +1173,8 @@
           </div>
         </div>
 
-        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" data-title="Crackling Fire">
-          <div class="sound-icon">🔥</div>
+        <div class="sound-item" data-src="https://cdn.pixabay.com/audio/2022/01/27/audio_d0ef968139.mp3" data-title="Crackling Fire">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 0-4 4-4 8a4 4 0 0 0 8 0c0-2-1-4-1-4s-1 2-3 2c0-2 0-6 0-6z"/><path d="M12 14a2 2 0 0 1-2-2c0-1.5 2-3 2-3s2 1.5 2 3a2 2 0 0 1-2 2z"/></svg></div>
           <div class="sound-info">
             <div class="sound-name">Crackling Fire</div>
             <div class="sound-desc">Warm fireplace ambience</div>
@@ -1183,8 +1187,8 @@
           </div>
         </div>
 
-        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" data-title="Mountain Stream">
-          <div class="sound-icon">🏔️</div>
+        <div class="sound-item" data-src="https://cdn.pixabay.com/audio/2022/05/13/audio_257112ce28.mp3" data-title="Mountain Stream">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l3-3 2 2 4-5 4 4 3-3"/><path d="M2 20h20"/><path d="M7 7l2-3 3 4 2-2 2 3"/></svg></div>
           <div class="sound-info">
             <div class="sound-name">Mountain Stream</div>
             <div class="sound-desc">Clear water over smooth stones</div>
@@ -1197,8 +1201,8 @@
           </div>
         </div>
 
-        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" data-title="Night Crickets">
-          <div class="sound-icon">🌙</div>
+        <div class="sound-item" data-src="https://cdn.pixabay.com/audio/2022/03/15/audio_8cb3d3e9bb.mp3" data-title="Night Crickets">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></div>
           <div class="sound-info">
             <div class="sound-name">Night Crickets</div>
             <div class="sound-desc">Peaceful summer night chorus</div>
@@ -1211,11 +1215,11 @@
           </div>
         </div>
 
-        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" data-title="Zen Garden">
-          <div class="sound-icon">🎋</div>
+        <div class="sound-item" data-src="https://cdn.pixabay.com/audio/2022/08/04/audio_2dde668d05.mp3" data-title="Zen Bowls">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c0-3.3 4-6 9-6s9 2.7 9 6"/><path d="M3 18h18"/><path d="M12 3v4"/><path d="M8 5l4 2 4-2"/><ellipse cx="12" cy="7" rx="4" ry="1.5"/></svg></div>
           <div class="sound-info">
-            <div class="sound-name">Zen Garden</div>
-            <div class="sound-desc">Tranquil bamboo water chimes</div>
+            <div class="sound-name">Zen Bowls</div>
+            <div class="sound-desc">Resonant singing bowl tones</div>
           </div>
           <div class="sound-ctrl">
             <div class="sound-play-btn">
@@ -1225,8 +1229,8 @@
           </div>
         </div>
 
-        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" data-title="White Noise">
-          <div class="sound-icon">☁️</div>
+        <div class="sound-item" data-src="https://cdn.pixabay.com/audio/2022/10/30/audio_946e3e4cdb.mp3" data-title="White Noise">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h2l2 8 2-12 2 10 2-6 2 4 2-8 2 12 2-8h2"/></svg></div>
           <div class="sound-info">
             <div class="sound-name">White Noise</div>
             <div class="sound-desc">Steady hum to mask distractions</div>
