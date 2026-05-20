@@ -534,6 +534,37 @@
     }
     body.light-mode .modal-divider { background: rgba(0,0,0,0.08); }
 
+
+    /* ── Modal footer ────────────────────────────────────── */
+    .modal-footer {
+      margin-top: 6px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-family: "Inter", sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: rgba(255,255,255,0.28);
+    }
+    body.light-mode .modal-footer {
+      border-top-color: rgba(0,0,0,0.08);
+      color: rgba(0,0,0,0.35);
+    }
+    .modal-footer a {
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .modal-footer a:hover { color: rgba(255,255,255,0.80); }
+    body.light-mode .modal-footer a { color: rgba(0,0,0,0.50); }
+    body.light-mode .modal-footer a:hover { color: rgba(0,0,0,0.85); }
+    .modal-footer-sep { opacity: 0.4; }
+
   </style>
 </head>
 <body>
@@ -632,6 +663,13 @@
         </button>
       </div>
       <div class="copy-feedback" id="copy-feedback">Copied to clipboard!</div>
+    </div>
+
+
+    <div class="modal-footer">
+      Powered by <a href="https://euphorya.co" target="_blank" rel="noopener">Euphorya</a>
+      <span class="modal-footer-sep">|</span>
+      Made by <a href="https://fajarsiddiq.com" target="_blank" rel="noopener">Fajar Siddiq</a>
     </div>
 
   </div>
