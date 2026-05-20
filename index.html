@@ -525,16 +525,6 @@
     /* loading pulse on playing item */
     @keyframes soundPulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
 
-    @keyframes radioPulse {
-      0%,100% { opacity:1; transform:scale(1); }
-      50%      { opacity:0.4; transform:scale(0.75); }
-    }
-    body.light-mode #radio-now-playing {
-      background: rgba(0,0,0,0.05);
-      border-color: rgba(0,0,0,0.08);
-    }
-    body.light-mode #radio-now-title { color: rgba(0,0,0,0.8); }
-    body.light-mode #radio-stop-btn  { color: rgba(0,0,0,0.4); }
     .radio-item { cursor: pointer; }
 
     .sound-item.playing .sound-name { animation: soundPulse 2s ease-in-out infinite; }
@@ -1125,18 +1115,27 @@
       border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.10);
       background: rgba(255,255,255,0.06);
-      color: #fff;
+      color: rgba(255,255,255,0.55);
       font-family: "Inter", sans-serif;
       font-size: 22px;
       font-weight: 300;
       text-align: center;
       letter-spacing: 0.06em;
     }
+    .alarm-input::-webkit-calendar-picker-indicator {
+      opacity: 0.7;
+      filter: invert(1);
+      cursor: pointer;
+    }
     .alarm-input:focus { outline: none; border-color: rgba(255,255,255,0.25); }
     body.light-mode .alarm-input {
       background: rgba(0,0,0,0.05);
       border-color: rgba(0,0,0,0.12);
-      color: #111;
+      color: rgba(0,0,0,0.50);
+    }
+    body.light-mode .alarm-input::-webkit-calendar-picker-indicator {
+      opacity: 0.7;
+      filter: none;
     }
     .alarm-set-btn {
       padding: 10px 16px;
@@ -1657,12 +1656,12 @@
       <div class="setting-label" style="margin-bottom:14px">Flap Clock FM</div>
       <div class="sound-list" id="radio-list">
 
-        <div class="sound-item radio-item" data-url="https://Qurango.net/radio/tarateel" data-title="Quran Recitation">
+        <div class="sound-item radio-item" data-url="https://Qurango.net/radio/tarateel" data-title="Quran Recitation FM">
           <div class="sound-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8 2 5 5 5 9c0 2.5 1.2 4.7 3 6.1V17h8v-1.9c1.8-1.4 3-3.6 3-6.1 0-4-3-7-7-7z"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/><path d="M9 9c0-1.7 1.3-3 3-3s3 1.3 3 3"/><line x1="12" y1="6" x2="12" y2="9"/></svg>
           </div>
           <div class="sound-info">
-            <div class="sound-name">Quran Recitation</div>
+            <div class="sound-name">Quran Recitation FM</div>
             <div class="sound-desc">Live recitation · Tarateel</div>
           </div>
           <div class="sound-ctrl">
@@ -1740,16 +1739,7 @@
       </div>
 
       <!-- Now Playing bar -->
-      <div id="radio-now-playing" style="display:none;margin-top:14px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);align-items:center;gap:10px;">
-        <div style="width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0;animation:radioPulse 1.4s ease-in-out infinite;"></div>
-        <div style="flex:1;min-width:0;">
-          <div id="radio-now-title" style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:rgba(255,255,255,0.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
-          <div style="font-family:Inter,sans-serif;font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;">Live Radio</div>
-        </div>
-        <button id="radio-stop-btn" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.45);padding:4px;display:flex;align-items:center;justify-content:center;" title="Stop">
-          <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-        </button>
-      </div>
+
       <div id="radio-error" style="display:none;margin-top:10px;font-family:Inter,sans-serif;font-size:11px;color:rgba(255,100,100,0.8);text-align:center;"></div>
 
       <!-- Volume -->
@@ -3106,18 +3096,6 @@
       return v ? parseInt(v.value, 10) / 100 : 0.7;
     }
 
-    function setNowPlaying(title) {
-      const bar   = document.getElementById('radio-now-playing');
-      const label = document.getElementById('radio-now-title');
-      if (!bar || !label) return;
-      if (title) {
-        label.textContent = title;
-        bar.style.display = 'flex'; bar.style.alignItems = 'center'; bar.style.gap = '10px';
-      } else {
-        bar.style.display = 'none';
-      }
-    }
-
     function showError(msg) {
       const el = document.getElementById('radio-error');
       if (!el) return;
@@ -3140,7 +3118,6 @@
         }
         radioPlaying = null;
       }
-      setNowPlaying(null);
       showError('');
     }
 
@@ -3175,7 +3152,6 @@
         playBtn.querySelector('.icon-play').style.display  = 'none';
         playBtn.querySelector('.icon-pause').style.display = '';
       }
-      setNowPlaying(title);
     }
 
     // Radio list click
@@ -3187,10 +3163,6 @@
       });
     }
 
-    // Stop button
-    const stopBtn = document.getElementById('radio-stop-btn');
-    if (stopBtn) stopBtn.addEventListener('click', () => stopRadio(true));
-
     // Volume slider
     const volSlider = document.getElementById('radio-volume');
     if (volSlider) {
@@ -3199,12 +3171,6 @@
       });
     }
 
-    // Light-mode now-playing dot colour
-    const observer = new MutationObserver(() => {
-      const dot = document.querySelector('#radio-now-playing div[style*="border-radius:50%"]');
-      if (dot) dot.style.background = document.body.classList.contains('light-mode') ? '#22c55e' : '#4ade80';
-    });
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
   })();
 
   /* ══════════════════════════════════════════════════════
