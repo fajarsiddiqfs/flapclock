@@ -1202,7 +1202,9 @@
     <svg class="meta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
     <span class="meta" id="loc-span">Locating…</span>
     <span class="meta meta-sep" id="weather-sep" style="display:none"> · </span>
-    <svg class="meta-icon" id="weather-icon-el" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="display:none; width:var(--meta-icon-size,11px); height:var(--meta-icon-size,11px); flex-shrink:0; vertical-align:middle;"></svg>
+    <span id="weather-icon-wrap" style="display:none; align-items:center; justify-content:center; flex-shrink:0; color:var(--meta-col); transition:color .35s;">
+      <svg id="weather-icon-el" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:var(--meta-icon-size,13px); height:var(--meta-icon-size,13px); display:block;"></svg>
+    </span>
     <span class="meta" id="weather-span" style="display:none"></span>
   </div>
 
@@ -2153,10 +2155,9 @@
         const icon = weatherIcon(code);
         const desc = weatherDesc(code);
         document.getElementById('weather-sep').style.display = '';
+        const iconWrap = document.getElementById('weather-icon-wrap');
+        iconWrap.style.display = 'inline-flex';
         const iconEl = document.getElementById('weather-icon-el');
-        iconEl.style.display = 'inline-flex';
-        iconEl.style.alignItems = 'center';
-        iconEl.style.justifyContent = 'center';
         iconEl.innerHTML = icon;
         const span = document.getElementById('weather-span');
         span.style.display = '';
