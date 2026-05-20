@@ -798,6 +798,7 @@
       font-size: 11px;
       color: rgba(255,255,255,0.45);
       line-height: 1.55;
+      flex-shrink: 0;
     }
     body.light-mode .modal-about {
       background: rgba(0,0,0,0.04);
@@ -868,6 +869,7 @@
       border-radius: 12px;
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
     }
     body.light-mode .modal-share-standalone {
       background: rgba(0,0,0,0.03);
@@ -1775,6 +1777,8 @@
       </div>
     </div>
 
+    </div><!-- /tab-content-wrap -->
+
     <!-- ── About ── -->
     <div class="modal-about">
       <div class="modal-about-header" id="about-toggle">
@@ -1823,8 +1827,6 @@
         </button>
       </div>
     </div>
-
-    </div><!-- /tab-content-wrap -->
 
     <!-- ── Footer ── -->
     <div class="modal-footer">
