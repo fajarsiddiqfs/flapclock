@@ -384,6 +384,14 @@
     .settings-btn svg { width: 22px; height: 22px; color: var(--fs-col); transition: color .35s; }
     .settings-btn.active svg { color: #555 !important; opacity: 0.6; }
 
+
+    /* ── iPad overrides ─────────────────────────────────── */
+    @media (min-width: 768px) and (max-width: 1366px) and (pointer: coarse) {
+      .settings-btn {
+        top: 36px;
+        right: 24px;
+      }
+    }
     /* ── Mobile portrait overrides ──────────────────────── */
     @media (max-width: 768px) and (orientation: portrait) {
       .settings-btn {
