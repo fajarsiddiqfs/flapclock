@@ -402,7 +402,122 @@
       .fs-btn svg { width: 15px; height: 15px; }
     }
 
-    /* ── Modal overlay ──────────────────────────────────── */
+    /* ── Sound tab ───────────────────────────────────────── */
+    .sound-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sound-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .sound-item:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.12); }
+    .sound-item.playing {
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.22);
+    }
+    body.light-mode .sound-item {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.07);
+    }
+    body.light-mode .sound-item:hover { background: rgba(0,0,0,0.08); }
+    body.light-mode .sound-item.playing { background: rgba(0,0,0,0.10); border-color: rgba(0,0,0,0.20); }
+
+    .sound-icon {
+      font-size: 22px;
+      line-height: 1;
+      flex-shrink: 0;
+      width: 30px;
+      text-align: center;
+    }
+    .sound-info { flex: 1; min-width: 0; }
+    .sound-name {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    body.light-mode .sound-name { color: rgba(0,0,0,0.82); }
+    .sound-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.02em;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    body.light-mode .sound-desc { color: rgba(0,0,0,0.38); }
+
+    .sound-ctrl { flex-shrink: 0; }
+    .sound-play-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s, transform .12s;
+    }
+    .sound-item:hover .sound-play-btn { background: rgba(255,255,255,0.18); }
+    .sound-item.playing .sound-play-btn { background: rgba(255,255,255,0.22); transform: scale(1.08); }
+    body.light-mode .sound-play-btn { background: rgba(0,0,0,0.08); }
+    body.light-mode .sound-item:hover .sound-play-btn { background: rgba(0,0,0,0.14); }
+    body.light-mode .sound-item.playing .sound-play-btn { background: rgba(0,0,0,0.16); }
+    .sound-play-btn svg { width: 16px; height: 16px; color: rgba(255,255,255,0.75); }
+    body.light-mode .sound-play-btn svg { color: rgba(0,0,0,0.65); }
+
+    /* loading pulse on playing item */
+    @keyframes soundPulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+    .sound-item.playing .sound-name { animation: soundPulse 2s ease-in-out infinite; }
+
+    /* Volume slider */
+    .volume-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.15);
+      outline: none;
+      cursor: pointer;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.80);
+      cursor: pointer;
+      transition: transform .12s;
+    }
+    .volume-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    .volume-slider::-moz-range-thumb {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.80);
+      border: none;
+      cursor: pointer;
+    }
+    body.light-mode .volume-slider { background: rgba(0,0,0,0.15); }
+    body.light-mode .volume-slider::-webkit-slider-thumb { background: rgba(0,0,0,0.70); }
+    body.light-mode .volume-slider::-moz-range-thumb { background: rgba(0,0,0,0.70); }
+
+    
     .modal-overlay {
       display: none;
       position: fixed;
@@ -931,6 +1046,7 @@
       <button class="modal-tab" data-tab="calendar">Calendar</button>
       <button class="modal-tab" data-tab="alarm">Alarm</button>
       <button class="modal-tab" data-tab="countdown">Timer</button>
+      <button class="modal-tab" data-tab="sound">Sound</button>
     </div>
 
     <!-- ── TAB: General ── -->
@@ -1003,6 +1119,136 @@
       <div class="cd-btns">
         <button class="cd-btn start" id="cd-start">Start</button>
         <button class="cd-btn reset" id="cd-reset">Reset</button>
+      </div>
+    </div>
+
+    <!-- ── TAB: Sound ── -->
+    <div class="tab-panel" id="tab-sound">
+      <div class="setting-label" style="margin-bottom:14px">Ambient & Nature Sounds</div>
+      <div class="sound-list" id="sound-list">
+
+        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" data-title="Forest Rain">
+          <div class="sound-icon">🌧️</div>
+          <div class="sound-info">
+            <div class="sound-name">Forest Rain</div>
+            <div class="sound-desc">Soft rain falling through trees</div>
+          </div>
+          <div class="sound-ctrl">
+            <div class="sound-play-btn">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" data-title="Ocean Waves">
+          <div class="sound-icon">🌊</div>
+          <div class="sound-info">
+            <div class="sound-name">Ocean Waves</div>
+            <div class="sound-desc">Gentle waves on a quiet shore</div>
+          </div>
+          <div class="sound-ctrl">
+            <div class="sound-play-btn">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" data-title="Deep Forest">
+          <div class="sound-icon">🌿</div>
+          <div class="sound-info">
+            <div class="sound-name">Deep Forest</div>
+            <div class="sound-desc">Birds and rustling leaves</div>
+          </div>
+          <div class="sound-ctrl">
+            <div class="sound-play-btn">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" data-title="Crackling Fire">
+          <div class="sound-icon">🔥</div>
+          <div class="sound-info">
+            <div class="sound-name">Crackling Fire</div>
+            <div class="sound-desc">Warm fireplace ambience</div>
+          </div>
+          <div class="sound-ctrl">
+            <div class="sound-play-btn">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" data-title="Mountain Stream">
+          <div class="sound-icon">🏔️</div>
+          <div class="sound-info">
+            <div class="sound-name">Mountain Stream</div>
+            <div class="sound-desc">Clear water over smooth stones</div>
+          </div>
+          <div class="sound-ctrl">
+            <div class="sound-play-btn">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" data-title="Night Crickets">
+          <div class="sound-icon">🌙</div>
+          <div class="sound-info">
+            <div class="sound-name">Night Crickets</div>
+            <div class="sound-desc">Peaceful summer night chorus</div>
+          </div>
+          <div class="sound-ctrl">
+            <div class="sound-play-btn">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" data-title="Zen Garden">
+          <div class="sound-icon">🎋</div>
+          <div class="sound-info">
+            <div class="sound-name">Zen Garden</div>
+            <div class="sound-desc">Tranquil bamboo water chimes</div>
+          </div>
+          <div class="sound-ctrl">
+            <div class="sound-play-btn">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="sound-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" data-title="White Noise">
+          <div class="sound-icon">☁️</div>
+          <div class="sound-info">
+            <div class="sound-name">White Noise</div>
+            <div class="sound-desc">Steady hum to mask distractions</div>
+          </div>
+          <div class="sound-ctrl">
+            <div class="sound-play-btn">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Volume control -->
+      <div style="margin-top:16px;">
+        <div class="setting-label" style="margin-bottom:8px">Volume</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg style="width:14px;height:14px;flex-shrink:0;color:var(--meta-col);" viewBox="0 0 24 24" fill="currentColor"><path d="M18.5 12A4.5 4.5 0 0 0 16 7.97V16a4.48 4.48 0 0 0 2.5-4zM5 9v6h4l5 5V4L9 9H5z"/></svg>
+          <input type="range" id="sound-volume" min="0" max="100" value="60" class="volume-slider">
+          <svg style="width:16px;height:16px;flex-shrink:0;color:var(--meta-col);" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        </div>
       </div>
     </div>
 
@@ -1336,7 +1582,7 @@
     if (existing) existing.remove();
     const toast = document.createElement('div');
     toast.id = 'ios-toast';
-    toast.innerHTML = '📱 Tap the Share icon → "Add to Home Screen" for fullscreen';
+    toast.innerHTML = 'Fullscreen: Tap Share Icon › Add to Home Screen';
     toast.style.cssText = [
       'position:fixed','bottom:70px','left:50%','transform:translateX(-50%)',
       'background:rgba(20,20,20,0.95)','color:rgba(255,255,255,0.90)',
@@ -1777,6 +2023,53 @@
         document.getElementById('cd-display').classList.remove('done');
       }
     });
+  });
+
+  /* ══════════════════════════════════════════════════════
+     AMBIENT SOUND PLAYER
+  ══════════════════════════════════════════════════════ */
+  let soundAudio    = null;
+  let soundPlaying  = null; // currently playing sound-item el
+
+  function stopSound() {
+    if (soundAudio) {
+      soundAudio.pause();
+      soundAudio.src = '';
+      soundAudio = null;
+    }
+    if (soundPlaying) {
+      soundPlaying.classList.remove('playing');
+      soundPlaying.querySelector('.icon-play').style.display  = '';
+      soundPlaying.querySelector('.icon-pause').style.display = 'none';
+      soundPlaying = null;
+    }
+  }
+
+  function playSound(item) {
+    const src   = item.dataset.src;
+    const isSame = soundPlaying === item;
+
+    stopSound();
+    if (isSame) return; // toggle off
+
+    soundAudio = new Audio(src);
+    soundAudio.loop   = true;
+    soundAudio.volume = document.getElementById('sound-volume').value / 100;
+    soundAudio.play().catch(() => {});
+
+    item.classList.add('playing');
+    item.querySelector('.icon-play').style.display  = 'none';
+    item.querySelector('.icon-pause').style.display = '';
+    soundPlaying = item;
+  }
+
+  document.getElementById('sound-list').addEventListener('click', e => {
+    const item = e.target.closest('.sound-item');
+    if (item) playSound(item);
+  });
+
+  document.getElementById('sound-volume').addEventListener('input', function() {
+    if (soundAudio) soundAudio.volume = this.value / 100;
   });
 
   /* ══════════════════════════════════════════════════════
