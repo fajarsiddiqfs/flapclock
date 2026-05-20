@@ -280,6 +280,15 @@
       line-height: 1;
     }
     .meta-sep { opacity: 0.4; }
+    .meta-icon {
+      width:  var(--meta-icon-size, 11px);
+      height: var(--meta-icon-size, 11px);
+      color: var(--meta-col);
+      flex-shrink: 0;
+      transition: color .35s;
+      position: relative;
+      top: 0.5px;
+    }
     .meta a {
       color: inherit;
       text-decoration: none;
@@ -380,8 +389,10 @@
   </div>
 
   <div class="meta-row">
+    <svg class="meta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
     <span class="meta" id="date-span"></span>
     <span class="meta meta-sep"> · </span>
+    <svg class="meta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
     <span class="meta" id="loc-span">Locating…</span>
   </div>
 
@@ -556,6 +567,7 @@
 
     const metaFs = Math.max(9, Math.round(Math.min(vw, vh) * 0.016));
     root.style.setProperty('--meta-fs', metaFs + 'px');
+    root.style.setProperty('--meta-icon-size', (metaFs + 1) + 'px');
 
     document.getElementById('page').style.gap = Math.round(vh * 0.038) + 'px';
 
