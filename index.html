@@ -564,6 +564,58 @@
     body.light-mode .volume-slider::-webkit-slider-thumb { background: rgba(0,0,0,0.70); }
     body.light-mode .volume-slider::-moz-range-thumb { background: rgba(0,0,0,0.70); }
 
+    /* ── Clock Size Slider ── */
+    .clock-size-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .clock-size-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.15);
+      outline: none;
+      cursor: pointer;
+      touch-action: none;
+    }
+    .clock-size-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.85);
+      cursor: pointer;
+      transition: transform .12s;
+    }
+    .clock-size-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    .clock-size-slider::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.85);
+      border: none;
+      cursor: pointer;
+    }
+    body.light-mode .clock-size-slider { background: rgba(0,0,0,0.15); }
+    body.light-mode .clock-size-slider::-webkit-slider-thumb { background: rgba(0,0,0,0.70); }
+    body.light-mode .clock-size-slider::-moz-range-thumb { background: rgba(0,0,0,0.70); }
+    .clock-size-value {
+      min-width: 36px;
+      text-align: right;
+      font-family: "Inter", sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.02em;
+    }
+    body.light-mode .clock-size-value { color: rgba(0,0,0,0.40); }
+    /* Clock scale transition */
+    #page {
+      transform-origin: center center;
+    }
+
     
     .modal-overlay {
       display: none;
@@ -811,6 +863,36 @@
     body.light-mode .modal-share-standalone {
       background: rgba(0,0,0,0.03);
       border-color: rgba(0,0,0,0.07);
+    }
+    .support-us-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 18px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.70);
+      font-family: "Inter", sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background .2s, border-color .2s, color .2s;
+    }
+    .support-us-btn:hover {
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(255,255,255,0.22);
+      color: rgba(255,255,255,0.90);
+    }
+    body.light-mode .support-us-btn {
+      background: rgba(0,0,0,0.06);
+      border-color: rgba(0,0,0,0.10);
+      color: rgba(0,0,0,0.55);
+    }
+    body.light-mode .support-us-btn:hover {
+      background: rgba(0,0,0,0.10);
+      border-color: rgba(0,0,0,0.18);
+      color: rgba(0,0,0,0.75);
     }
     .modal-share-label {
       font-family: "Inter", sans-serif;
@@ -1330,6 +1412,15 @@
         </div>
         <div class="copy-feedback" id="copy-feedback">Copied to clipboard!</div>
       </div>
+      <div class="modal-divider"></div>
+      <div class="setting-section">
+        <div class="setting-label">Clock Size</div>
+        <div class="clock-size-row">
+          <input type="range" id="clock-size-slider" class="clock-size-slider"
+                 min="0.6" max="1.0" step="0.01" value="1.0">
+          <span class="clock-size-value" id="clock-size-value">1.0×</span>
+        </div>
+      </div>
     </div>
 
     <!-- ── TAB: Calendar ── -->
@@ -1736,45 +1827,18 @@
         </div>
         <svg class="modal-about-chevron" id="about-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <div class="modal-about-body" id="about-body">
+      <div class="modal-about-body open" id="about-body">
         <p>Flap Clock was built with a simple idea: time should feel effortless. In a world full of distractions, most clocks try to do too much—or not enough. Flap Clock strips it back to what matters: clarity, precision, and presence.</p>
         <p>A fullscreen flip clock that feels immediate, beautiful, and invisible at the same time. It's designed for any device, any moment—desktop or mobile—so the time is always exactly where you need it, when you need it. Nothing more. Nothing less.</p>
-        <a href="https://buymeacoffee.com/fajarsiddiq" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:8px 14px;border-radius:10px;background:rgba(255,213,0,0.12);border:1px solid rgba(255,213,0,0.22);color:rgba(255,213,0,0.9);font-family:Inter,sans-serif;font-size:11px;font-weight:600;text-decoration:none;transition:background .2s,border-color .2s;" onmouseover="this.style.background='rgba(255,213,0,0.2)';this.style.borderColor='rgba(255,213,0,0.4)'" onmouseout="this.style.background='rgba(255,213,0,0.12)';this.style.borderColor='rgba(255,213,0,0.22)'">
-          <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;flex-shrink:0;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-          Support Flap Clock
-        </a>
       </div>
     </div>
 
-    <!-- ── Share icons ── -->
-    <div class="modal-share-standalone">
-      <span class="modal-share-label">Share</span>
-      <div class="share-icons">
-        <!-- X / Twitter -->
-        <a class="share-icon-btn sib-x" id="share-twitter" href="#" target="_blank" rel="noopener" title="Share on X">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.845L1.254 2.25H8.08l4.258 5.63 5.906-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        </a>
-        <!-- Facebook -->
-        <a class="share-icon-btn sib-fb" id="share-facebook" href="#" target="_blank" rel="noopener" title="Share on Facebook">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-        </a>
-        <!-- Threads -->
-        <a class="share-icon-btn sib-th" id="share-threads" href="#" target="_blank" rel="noopener" title="Share on Threads" style="font-size:17px;font-weight:700;font-family:Inter,sans-serif;letter-spacing:-0.5px;">
-          @
-        </a>
-        <!-- WhatsApp -->
-        <a class="share-icon-btn sib-wa" id="share-whatsapp" href="#" target="_blank" rel="noopener" title="Share on WhatsApp">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-        </a>
-        <!-- Telegram -->
-        <a class="share-icon-btn sib-tg" id="share-telegram" href="#" target="_blank" rel="noopener" title="Share on Telegram">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-        </a>
-        <!-- Copy Link -->
-        <a class="share-icon-btn sib-copy" id="share-copy" href="#" title="Copy link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        </a>
-      </div>
+    <!-- ── Support Us ── -->
+    <div class="modal-share-standalone" style="justify-content:center;">
+      <a href="https://buymeacoffee.com/fajarsiddiq" target="_blank" rel="noopener" class="support-us-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;flex-shrink:0;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        Support Us
+      </a>
     </div>
 
     <!-- ── Footer ── -->
@@ -3145,6 +3209,8 @@
     const body    = document.getElementById('about-body');
     const chevron = document.getElementById('about-chevron');
     if (!toggle) return;
+    // Start open by default
+    chevron.style.transform = 'rotate(180deg)';
     toggle.addEventListener('click', () => {
       const open = body.classList.toggle('open');
       chevron.style.transform = open ? 'rotate(180deg)' : '';
@@ -3212,6 +3278,39 @@
         }, 2000);
       });
     }
+  })();
+
+  /* ══════════════════════════════════════════════════════
+     CLOCK SIZE SLIDER
+  ══════════════════════════════════════════════════════ */
+  (function() {
+    const SIZES   = [0.6, 0.7, 0.8, 0.9, 1.0];
+    const LABELS  = ['0.6×', '0.7×', '0.8×', '0.9×', '1.0×'];
+    const DEFAULT = 4; // index for 1.0
+
+    const slider  = document.getElementById('clock-size-slider');
+    const label   = document.getElementById('clock-size-value');
+    const page    = document.getElementById('page');
+
+    if (!slider || !label || !page) return;
+
+    function applySize(scale) {
+      page.style.transform = 'scale(' + scale + ')';
+      label.textContent = parseFloat(scale).toFixed(2) + '×';
+    }
+
+    // Load saved value
+    const saved = parseFloat(localStorage.getItem('clockSize'));
+    const initVal = (!isNaN(saved) && saved >= 0.6 && saved <= 1.0) ? saved : 1.0;
+    slider.value = initVal;
+    applySize(initVal);
+
+    // Real-time update on drag (mouse + touch)
+    slider.addEventListener('input', function() {
+      const scale = parseFloat(this.value);
+      applySize(scale);
+      localStorage.setItem('clockSize', scale);
+    });
   })();
 
   /* ══════════════════════════════════════════════════════
