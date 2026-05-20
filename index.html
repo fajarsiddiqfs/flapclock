@@ -50,7 +50,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding-bottom: 8vh;
+      padding-bottom: 2vh;
+      padding-top: 0;
     }
 
     /* ── Page stack ─────────────────────────────────────── */
@@ -290,7 +291,7 @@
         line-height: 1.5;
       }
       .meta-icon { display: none; }
-      #weather-icon-el { display: inline-flex !important; }
+      #weather-icon-el { display: inline-flex !important; align-items: center !important; justify-content: center !important; }
       .meta { font-size: clamp(9px, 2.4vw, 12px); letter-spacing: 0.03em; }
       .meta-sep { opacity: 0.35; }
     }
@@ -313,6 +314,7 @@
       transition: color .35s;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       vertical-align: middle;
       position: relative;
       top: -0.5px;
@@ -1200,7 +1202,7 @@
     <svg class="meta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
     <span class="meta" id="loc-span">Locating…</span>
     <span class="meta meta-sep" id="weather-sep" style="display:none"> · </span>
-    <svg class="meta-icon" id="weather-icon-el" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79zM4 10.5H1v2h3zm9-9.95h-2V3.5h2zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79zM20 10.5v2h3v-2zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41z"/></svg>
+    <svg class="meta-icon" id="weather-icon-el" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="display:none; width:var(--meta-icon-size,11px); height:var(--meta-icon-size,11px); flex-shrink:0; vertical-align:middle;"></svg>
     <span class="meta" id="weather-span" style="display:none"></span>
   </div>
 
@@ -2152,7 +2154,9 @@
         const desc = weatherDesc(code);
         document.getElementById('weather-sep').style.display = '';
         const iconEl = document.getElementById('weather-icon-el');
-        iconEl.style.display = '';
+        iconEl.style.display = 'inline-flex';
+        iconEl.style.alignItems = 'center';
+        iconEl.style.justifyContent = 'center';
         iconEl.innerHTML = icon;
         const span = document.getElementById('weather-span');
         span.style.display = '';
