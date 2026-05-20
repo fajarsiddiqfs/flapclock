@@ -2272,8 +2272,11 @@
     const vh = window.innerHeight;
     const isLandscape = vw > vh;
     const row = document.getElementById('clock-row');
-    const metaH = 20, metaGap = 10, safe = 24;
-    const availH = vh - metaH - metaGap - safe;
+    const metaFs  = Math.max(8, Math.round(Math.min(vw, vh) * 0.016));
+    const metaH   = Math.max(12, Math.round(metaFs * 1.4));
+    const metaGap = Math.max(4,  Math.round(vh * 0.012));
+    const safe    = Math.max(10, Math.round(vh * 0.025));
+    const availH  = vh - metaH - metaGap - safe;
     const availW = vw - safe;
     let cardW, cardH, cardGap, fs, ampmFs;
 
@@ -2324,10 +2327,9 @@
     });
 
     row.style.gap = cardGap + 'px';
-    const metaFs = Math.max(9, Math.round(Math.min(vw, vh) * 0.016));
     root.style.setProperty('--meta-fs', metaFs + 'px');
     root.style.setProperty('--meta-icon-size', (metaFs + 1) + 'px');
-    document.getElementById('page').style.gap = Math.round(vh * 0.038) + 'px';
+    document.getElementById('page').style.gap = Math.max(4, Math.round(vh * 0.030)) + 'px';
     if (typeof applyLangFont === 'function') applyLangFont();
   }
 
