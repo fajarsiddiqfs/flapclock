@@ -50,6 +50,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding-bottom: 8vh;
     }
 
     /* ── Page stack ─────────────────────────────────────── */
@@ -277,6 +278,7 @@
       justify-content: center;
       gap: 0.4em;
       white-space: nowrap;
+      line-height: 1;
     }
 
     @media (max-width: 768px) and (orientation: portrait) {
@@ -288,6 +290,7 @@
         line-height: 1.5;
       }
       .meta-icon { display: none; }
+      #weather-icon-el { display: inline-flex !important; }
       .meta { font-size: clamp(9px, 2.4vw, 12px); letter-spacing: 0.03em; }
       .meta-sep { opacity: 0.35; }
     }
@@ -298,6 +301,8 @@
       letter-spacing: 0.07em;
       color: var(--meta-col);
       line-height: 1;
+      display: inline-flex;
+      align-items: center;
     }
     .meta-sep { opacity: 0.4; }
     .meta-icon {
@@ -306,8 +311,11 @@
       color: var(--meta-col);
       flex-shrink: 0;
       transition: color .35s;
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
       position: relative;
-      top: 0.5px;
+      top: -0.5px;
     }
     .meta a {
       color: inherit;
@@ -1995,30 +2003,48 @@
     document.getElementById('loc-span').textContent = t;
   }
   function reverseGeocode(lat, lon) {
-    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=14&addressdetails=1`,
           { headers: { 'Accept-Language': 'en' } })
       .then(r => r.json())
       .then(d => {
         const a = d.address || {};
-        const city    = a.city || a.town || a.village || a.municipality || a.county || '';
-        const state   = a.state || '';
-        const country = a.country_code ? a.country_code.toUpperCase() : (a.country || '');
+        const suburb   = a.suburb || a.neighbourhood || a.quarter || '';
+        const city     = a.city || a.town || a.village || a.municipality || a.county || '';
+        const state    = a.state || '';
+        const country  = a.country_code ? a.country_code.toUpperCase() : (a.country || '');
         let loc = '';
-        if (city && state && country)  loc = `${city}  ·  ${state}  ·  ${country}`;
-        else if (city && country)       loc = `${city}  ·  ${country}`;
-        else if (state && country)      loc = `${state}  ·  ${country}`;
-        else loc = d.display_name ? d.display_name.split(',')[0] : 'Unknown';
+        if (suburb && city && country)       loc = `${suburb}  ·  ${city}  ·  ${country}`;
+        else if (city && state && country)   loc = `${city}  ·  ${state}  ·  ${country}`;
+        else if (city && country)            loc = `${city}  ·  ${country}`;
+        else if (state && country)           loc = `${state}  ·  ${country}`;
+        else loc = d.display_name ? d.display_name.split(',').slice(0,2).join(',').trim() : 'Unknown';
         setLoc(loc);
+      })
+      .catch(() => setLoc('Location Unavailable'));
+  }
+  function ipFallback() {
+    fetch('https://ipapi.co/json/')
+      .then(r => r.json())
+      .then(d => {
+        const city    = d.city || '';
+        const region  = d.region || '';
+        const country = d.country_code || '';
+        let loc = '';
+        if (city && region && country)     loc = `${city}  ·  ${region}  ·  ${country}`;
+        else if (city && country)          loc = `${city}  ·  ${country}`;
+        else loc = 'Location Unavailable';
+        setLoc(loc);
+        if (d.latitude && d.longitude) fetchWeather(d.latitude, d.longitude);
       })
       .catch(() => setLoc('Location Unavailable'));
   }
   if ('geolocation' in navigator) {
     navigator.geolocation.getCurrentPosition(
       p  => { reverseGeocode(p.coords.latitude, p.coords.longitude); fetchWeather(p.coords.latitude, p.coords.longitude); },
-      () => setLoc('Location Unavailable'),
-      { timeout: 8000 }
+      () => ipFallback(),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
-  } else { setLoc('Location Not Supported'); }
+  } else { ipFallback(); }
 
   /* ── Settings modal ─────────────────────────────────── */
   const settingsBtn   = document.getElementById('settings-btn');
