@@ -189,6 +189,11 @@
     }
     .card-bottom { border-top: 2px solid var(--hinge-line); }
     .hinge { background: var(--hinge-col); transition: background .35s; }
+
+    @media (max-width: 768px) and (orientation: portrait) {
+      .hinge { height: 3px; top: calc(50% - 1.5px); }
+      .card-bottom { border-top-width: 1px; }
+    }
     .digit-wrap span { color: var(--digit-col); transition: color .35s; }
     .ampm-badge { color: var(--badge-col); transition: color .35s; }
     .meta { color: var(--meta-col); transition: color .35s; }
@@ -854,18 +859,25 @@
 
   </div>
 
+  <!-- Row 1: Date (always) + Location inline (landscape only) + Weather inline (landscape only) -->
   <div class="meta-row">
     <svg class="meta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
     <span class="meta" id="date-span"></span>
-    <span class="meta meta-sep"> · </span>
-    <svg class="meta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
-    <span class="meta" id="loc-span">Locating…</span>
-    <!-- Weather inline (desktop/landscape only) -->
+    <!-- Location inline (landscape/desktop only) -->
+    <span class="meta meta-sep loc-inline"> · </span>
+    <svg class="meta-icon loc-inline" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+    <span class="meta loc-inline" id="loc-span-inline">Locating…</span>
+    <!-- Weather inline (landscape/desktop only) -->
     <span class="meta meta-sep weather-inline" id="weather-sep" style="display:none"> · </span>
     <svg class="meta-icon weather-inline" id="weather-icon-el" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79zM4 10.5H1v2h3zm9-9.95h-2V3.5h2zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79zM20 10.5v2h3v-2zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41z"/></svg>
     <span class="meta weather-inline" id="weather-span" style="display:none"></span>
   </div>
-  <!-- Weather row (portrait/mobile only) -->
+  <!-- Row 2: Location (portrait/mobile only) -->
+  <div class="meta-row loc-row" id="loc-row" style="display:none">
+    <svg class="meta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+    <span class="meta" id="loc-span">Locating…</span>
+  </div>
+  <!-- Row 3: Weather (portrait/mobile only) -->
   <div class="meta-row weather-row" id="weather-row" style="display:none">
     <svg class="meta-icon" id="weather-icon-el-mobile" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79zM4 10.5H1v2h3zm9-9.95h-2V3.5h2zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79zM20 10.5v2h3v-2zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41z"/></svg>
     <span class="meta" id="weather-span-mobile"></span>
@@ -1280,6 +1292,7 @@
   setCard(cards.h, '12');
   setCard(cards.m, '00');
   tick();
+  applyWeatherLayout();
   setInterval(() => { tick(); checkAlarm(); }, 1000);
 
   let rt;
@@ -1353,7 +1366,11 @@
   });
 
   /* ── geolocation ────────────────────────────────────── */
-  function setLoc(t) { document.getElementById('loc-span').textContent = t; }
+  function setLoc(t) {
+    document.getElementById('loc-span').textContent = t;
+    document.getElementById('loc-span-inline').textContent = t;
+    applyWeatherLayout();
+  }
   function reverseGeocode(lat, lon) {
     fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
           { headers: { 'Accept-Language': 'en' } })
@@ -1501,15 +1518,22 @@
   function applyWeatherLayout() {
     const isLandscape = window.innerWidth > window.innerHeight;
     const hasWeather = document.getElementById('weather-span').textContent !== '';
+
+    // Location inline (landscape): show · icon · text in the date row
+    document.querySelectorAll('.loc-inline').forEach(el => {
+      el.style.display = isLandscape ? '' : 'none';
+    });
+    // Location row (portrait): separate row below date
+    document.getElementById('loc-row').style.display = isLandscape ? 'none' : '';
+
     if (!hasWeather) return;
 
-    // Inline elements: show in landscape, hide in portrait
+    // Inline weather elements: show in landscape, hide in portrait
     document.querySelectorAll('.weather-inline').forEach(el => {
       el.style.display = isLandscape ? '' : 'none';
     });
-    // Mobile row: show in portrait, hide in landscape
-    const weatherRow = document.getElementById('weather-row');
-    weatherRow.style.display = isLandscape ? 'none' : '';
+    // Mobile weather row: show in portrait, hide in landscape
+    document.getElementById('weather-row').style.display = isLandscape ? 'none' : '';
   }
 
   function weatherDesc(code) {
@@ -1755,6 +1779,57 @@
       }
     });
   });
+
+  /* ══════════════════════════════════════════════════════
+     WAKE LOCK — keep screen on for desktop & mobile
+     Primary:  Screen Wake Lock API (Chrome 84+, Edge, Safari 16.4+)
+     Fallback: invisible looping video trick (older browsers)
+  ══════════════════════════════════════════════════════ */
+  let wakeLock = null;
+
+  async function requestWakeLock() {
+    // Primary: Screen Wake Lock API
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+        return;
+      } catch (e) {
+        // Permission denied or not supported — fall through to video fallback
+      }
+    }
+    // Fallback: tiny invisible looping video keeps screen awake on older devices
+    enableVideoFallback();
+  }
+
+  function enableVideoFallback() {
+    if (document.getElementById('__wakelock_video')) return;
+    // Minimal valid MP4 (1×1 transparent, ~50 bytes base64)
+    const mp4 = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAAAhmcmVlAAAAG21kYXQAAAGzABAHAAABthADAowdbb9/AAAC6W1vb3YAAABsbXZoZAAAAAAAAAAAAAAAAAAAA+gAAAAAAAEAAAEAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAABVHRyYWsAAAAcdGtoZAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAIAAAABmRpYWwAAAAMZHR0cwAAAAgAAAABAAAAAQAAAAwAAAABc3RzZAAAAEAAAAEBAAAAAAAAAAAAAAAA';
+    const v = document.createElement('video');
+    v.id = '__wakelock_video';
+    v.setAttribute('loop', '');
+    v.setAttribute('playsinline', '');
+    v.setAttribute('muted', '');
+    v.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0.001;pointer-events:none;z-index:-1;top:0;left:0;';
+    v.src = mp4;
+    document.body.appendChild(v);
+    v.play().catch(() => {
+      // Autoplay blocked — will retry on first user interaction
+      document.addEventListener('click',     () => v.play().catch(() => {}), { once: true });
+      document.addEventListener('touchstart', () => v.play().catch(() => {}), { once: true });
+    });
+  }
+
+  // Re-acquire when tab becomes visible again (wake lock is released on tab hide)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      requestWakeLock();
+    }
+  });
+
+  // Kick it off — after a small delay so the page has focus
+  setTimeout(requestWakeLock, 500);
 
 </script>
 </body>
