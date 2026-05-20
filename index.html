@@ -2006,16 +2006,16 @@
     { name: 'اردو',      digits: ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'] },
   ];
   const LANG_STYLE = [
-    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   },
-    { ff: '"Noto Serif SC","Noto Sans SC",serif',                  ls: '0.05em',  scale: 0.82, ty: '0%'   },
-    { ff: '"Noto Sans Devanagari",sans-serif',                     ls: '0em',     scale: 0.80, ty: '4%'   },
-    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   },
-    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   },
-    { ff: '"Noto Sans Arabic",sans-serif',                         ls: '0.04em',  scale: 0.82, ty: '2%'   },
-    { ff: '"Noto Sans Bengali",sans-serif',                        ls: '0em',     scale: 0.80, ty: '3%'   },
-    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   },
-    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: '0%'   },
-    { ff: '"Noto Nastaliq Urdu","Noto Sans Arabic",sans-serif',    ls: '0.04em',  scale: 0.70, ty: '-18%' },
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
+    { ff: '"Noto Serif SC","Noto Sans SC",serif',                  ls: '0.05em',  scale: 0.72, ty: 0   },
+    { ff: '"Noto Sans Devanagari",sans-serif',                     ls: '0em',     scale: 0.80, ty: 4   },
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
+    { ff: '"Noto Sans Arabic",sans-serif',                         ls: '0.04em',  scale: 0.78, ty: 6   },
+    { ff: '"Noto Sans Bengali",sans-serif',                        ls: '0em',     scale: 0.80, ty: 3   },
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
+    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
+    { ff: '"Noto Nastaliq Urdu","Noto Sans Arabic",sans-serif',    ls: '0.04em',  scale: 0.62, ty: -14 },
   ];
   let langIdx = 0;
 
@@ -2026,15 +2026,38 @@
 
   function applyLangFont() {
     const s = LANG_STYLE[langIdx];
-    const fsVal = getComputedStyle(document.documentElement).getPropertyValue('--fs').trim();
+    const root = document.documentElement;
+    const fsVal = getComputedStyle(root).getPropertyValue('--fs').trim();
+    const chVal = getComputedStyle(root).getPropertyValue('--ch').trim();
     const fsPx  = parseFloat(fsVal) || 160;
+    const chPx  = parseFloat(chVal) || 220;
     const scaled = Math.round(fsPx * s.scale);
+    // ty is a number (percentage of scaled font size), e.g. 6 means +6% downward
+    const tyPx = s.ty !== 0 ? Math.round(scaled * s.ty / 100) : 0;
+
+    // Update spans — never use translateY on span (it gets clipped by overflow:hidden)
     document.querySelectorAll('.digit-wrap span').forEach(el => {
       el.style.fontFamily    = s.ff || "'Oswald', sans-serif";
       el.style.letterSpacing = s.ls;
       el.style.fontSize      = scaled + 'px';
       el.style.lineHeight    = '1';
-      el.style.transform     = s.ty !== '0%' ? `translateY(${s.ty})` : '';
+      el.style.transform     = '';
+    });
+
+    // Reposition digit-wrap containers so glyphs sit centred in each card half
+    // card-top / flap-top: top = (card_height/2 - scaled/2) + tyPx
+    const topHalfTop = (chPx / 2 - scaled / 2) + tyPx;
+    // card-bottom / flap-bottom (positioned inside the bottom half div):
+    // normal: top = -(scaled/2). With nudge: top = -(scaled/2) + tyPx
+    const botHalfTop = -(scaled / 2) + tyPx;
+
+    document.querySelectorAll('.card-top .digit-wrap, .flap-top .digit-wrap').forEach(el => {
+      el.style.top    = topHalfTop + 'px';
+      el.style.height = scaled + 'px';
+    });
+    document.querySelectorAll('.card-bottom .digit-wrap, .flap-bottom .digit-wrap').forEach(el => {
+      el.style.top    = botHalfTop + 'px';
+      el.style.height = scaled + 'px';
     });
   }
 
