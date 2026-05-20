@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="robots" content="noindex"/>
+  <title>Flap Clock – Embed</title>
+  <link rel="icon" href="/favicon.ico"/>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Inter:wght@400;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Oswald', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 2vh;
+      padding-top: 0;
+    }
+
+    /* ── Page stack ─────────────────────────────────────── */
+    .page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ── Clock row ──────────────────────────────────────── */
+    .clock-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--gap, 10px);
+    }
+
+    /* ── Flip card ──────────────────────────────────────── */
+    .flip-card {
+      position: relative;
+      width:  var(--cw, 300px);
+      height: var(--ch, 220px);
+      border-radius: var(--r, 18px);
+      overflow: hidden;
+      flex-shrink: 0;
+      perspective: 1200px;
+    }
+
+    .card-top, .card-bottom,
+    .flap-top, .flap-bottom {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      overflow: hidden;
+    }
+
+    .card-top  { top: 0; }
+    .card-bottom { bottom: 0; }
+
+    .card-top .digit-wrap {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(50% - var(--fs,160px) / 2);
+      height: var(--fs, 160px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .card-bottom .digit-wrap {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(-1 * var(--ch, 220px) / 2 + var(--ch, 220px) / 2 - var(--fs, 160px) / 2);
+      height: var(--fs, 160px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .digit-wrap span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Oswald', sans-serif;
+      font-size:   var(--fs, 160px);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* ── Hinge ──────────────────────────────────────────── */
+    .hinge {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(50% - 4px);
+      height: 7px;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    /* ── Theme variables ────────────────────────────────── */
+    :root {
+      --bg:         #000;
+      --card-bg:    #0F0E0E;
+      --hinge-col:  #000;
+      --hinge-line: #000;
+      --digit-col:  #d0d0cb;
+      --badge-col:  rgba(208,208,203,0.78);
+      --meta-col:   rgba(208,208,203,0.28);
+    }
+    body.light-mode {
+      --bg:         #ffffff;
+      --card-bg:    #F1F1F1;
+      --hinge-col:  #ffffff;
+      --hinge-line: #000000;
+      --digit-col:  #000000;
+      --badge-col:  #000000;
+      --meta-col:   #000000;
+    }
+
+    html, body { background: var(--bg); transition: background .35s; }
+    .card-top, .card-bottom, .flap-top, .flap-bottom {
+      background: var(--card-bg);
+      transition: background .35s;
+    }
+    .card-bottom { border-top: 2px solid var(--hinge-line); }
+    .hinge { background: var(--hinge-col); transition: background .35s; }
+
+    @media (max-width: 768px) and (orientation: portrait) {
+      .hinge { height: 3px; top: calc(50% - 1.5px); }
+      .card-bottom { border-top-width: 1px; }
+    }
+    .digit-wrap span { color: var(--digit-col); transition: color .35s; }
+    .ampm-badge { color: var(--badge-col); transition: color .35s; }
+    .meta { color: var(--meta-col); transition: color .35s; }
+
+    /* ── AM/PM badge ────────────────────────────────────── */
+    .ampm-badge {
+      position: absolute;
+      top:  clamp(22px, 34%, 52px);
+      left: clamp(18px, 12%, 32px);
+      z-index: 30;
+      font-family: 'Inter', sans-serif;
+      font-size: var(--ampm-fs, 13px);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--badge-col);
+      line-height: 1;
+      pointer-events: none;
+      transition: opacity .15s, color .35s;
+    }
+
+    /* ── Flaps ──────────────────────────────────────────── */
+    .flap-top {
+      top: 0;
+      transform-origin: bottom center;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform-style: preserve-3d;
+      z-index: 3;
+    }
+    .flap-bottom {
+      bottom: 0;
+      transform-origin: top center;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform-style: preserve-3d;
+      z-index: 2;
+    }
+
+    .flap-top .digit-wrap {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(50% - var(--fs,160px) / 2);
+      height: var(--fs, 160px);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .flap-bottom .digit-wrap {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(-1 * var(--ch,220px) / 2 + var(--ch,220px) / 2 - var(--fs,160px) / 2);
+      height: var(--fs, 160px);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+
+    .flap-top::after, .flap-bottom::after {
+      content: ''; position: absolute; inset: 0;
+      background: transparent; pointer-events: none;
+    }
+
+    .flap-top.go    { animation: fTop .30s cubic-bezier(.55,.05,.45,.95) forwards; }
+    .flap-bottom.go { animation: fBot .30s cubic-bezier(.55,.05,.45,.95) .08s forwards; }
+    .flap-top.go::after    { animation: shTop .30s ease-in forwards; }
+    .flap-bottom.go::after { animation: shBot .30s ease-out .08s forwards; }
+
+    @keyframes fTop  { 0%{transform:rotateX(0)}      100%{transform:rotateX(-90deg)} }
+    @keyframes fBot  { 0%{transform:rotateX(90deg)}  100%{transform:rotateX(0)} }
+    @keyframes shTop { 0%{background:transparent}     100%{background:rgba(0,0,0,.55)} }
+    @keyframes shBot { 0%{background:rgba(0,0,0,.55)} 100%{background:transparent} }
+
+    /* ── Meta row ───────────────────────────────────────── */
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4em;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    @media (max-width: 768px) and (orientation: portrait) {
+      .meta-row {
+        white-space: normal;
+        flex-wrap: wrap;
+        gap: 0.25em;
+        max-width: 96vw;
+        line-height: 1.5;
+      }
+      .meta-icon { display: none; }
+      #weather-icon-el { display: inline-flex !important; align-items: center !important; justify-content: center !important; }
+      .meta { font-size: clamp(9px, 2.4vw, 12px); letter-spacing: 0.03em; }
+      .meta-sep { opacity: 0.35; }
+    }
+    .meta {
+      font-family: 'Inter', sans-serif;
+      font-size: var(--meta-fs, 10px);
+      font-weight: 400;
+      letter-spacing: 0.07em;
+      color: var(--meta-col);
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+    }
+    .meta-sep { opacity: 0.4; }
+    .meta-icon {
+      width:  var(--meta-icon-size, 11px);
+      height: var(--meta-icon-size, 11px);
+      color: var(--meta-col);
+      flex-shrink: 0;
+      transition: color .35s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      position: relative;
+      top: -0.5px;
+    }
+
+    /* ── Seconds card (hidden by default) ───────────────── */
+    #scard { display: none; }
+    #sec-sep { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="page" id="page">
+
+  <div class="clock-row" id="clock-row">
+
+    <!-- HOUR card -->
+    <div class="flip-card" id="hcard">
+      <div class="card-top" id="ht">
+        <div class="digit-wrap"><span id="ht-val"></span></div>
+      </div>
+      <div class="card-bottom" id="hb">
+        <div class="digit-wrap"><span id="hb-val"></span></div>
+      </div>
+      <div class="flap-top" id="hft">
+        <div class="digit-wrap"><span id="hft-val"></span></div>
+      </div>
+      <div class="flap-bottom" id="hfb">
+        <div class="digit-wrap"><span id="hfb-val"></span></div>
+      </div>
+      <div class="hinge"></div>
+      <div class="ampm-badge" id="ampm-badge">AM</div>
+    </div>
+
+    <!-- MINUTE card -->
+    <div class="flip-card" id="mcard">
+      <div class="card-top" id="mt">
+        <div class="digit-wrap"><span id="mt-val"></span></div>
+      </div>
+      <div class="card-bottom" id="mb">
+        <div class="digit-wrap"><span id="mb-val"></span></div>
+      </div>
+      <div class="flap-top" id="mft">
+        <div class="digit-wrap"><span id="mft-val"></span></div>
+      </div>
+      <div class="flap-bottom" id="mfb">
+        <div class="digit-wrap"><span id="mfb-val"></span></div>
+      </div>
+      <div class="hinge"></div>
+    </div>
+
+    <!-- SECONDS separator (shown only when show_seconds=1) -->
+    <div id="sec-sep" style="
+      font-family:'Oswald',sans-serif;
+      font-weight:700;
+      color:var(--digit-col);
+      opacity:0.25;
+      line-height:1;
+      letter-spacing:-0.02em;
+      align-self:center;
+      flex-shrink:0;
+      transition:color .35s;
+    ">:</div>
+
+    <!-- SECONDS card (shown only when show_seconds=1) -->
+    <div class="flip-card" id="scard">
+      <div class="card-top" id="st">
+        <div class="digit-wrap"><span id="st-val"></span></div>
+      </div>
+      <div class="card-bottom" id="sb">
+        <div class="digit-wrap"><span id="sb-val"></span></div>
+      </div>
+      <div class="flap-top" id="sft">
+        <div class="digit-wrap"><span id="sft-val"></span></div>
+      </div>
+      <div class="flap-bottom" id="sfb">
+        <div class="digit-wrap"><span id="sfb-val"></span></div>
+      </div>
+      <div class="hinge"></div>
+    </div>
+
+  </div>
+
+  <!-- Single unified info row -->
+  <div class="meta-row" id="info-row">
+    <svg class="meta-icon" id="date-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+    <span class="meta" id="date-span"></span>
+    <span class="meta meta-sep" id="sep-dl"> · </span>
+    <svg class="meta-icon" id="loc-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+    <span class="meta" id="loc-span">Locating…</span>
+    <span class="meta meta-sep" id="weather-sep" style="display:none"> · </span>
+    <span id="weather-icon-wrap" style="display:none; align-items:center; justify-content:center; flex-shrink:0; color:var(--meta-col); transition:color .35s;">
+      <svg id="weather-icon-el" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:var(--meta-icon-size,13px); height:var(--meta-icon-size,13px); display:block;"></svg>
+    </span>
+    <span class="meta" id="weather-span" style="display:none"></span>
+  </div>
+
+</div>
+
+<script>
+
+/* ═══════════════════════════════════════════════════
+   FLAP CLOCK — EMBED  (faithful port of index.html)
+   URL params: theme, format, show_date, show_location,
+               show_weather, show_seconds
+═══════════════════════════════════════════════════ */
+
+/* ── URL params ─────────────────────────────────── */
+const P = new URLSearchParams(location.search);
+
+function param(key, def) { return P.has(key) ? P.get(key) : def; }
+function boolParam(key, def) {
+  if (!P.has(key)) return def;
+  return P.get(key) !== '0';
+}
+
+const OPT = {
+  theme:         param('theme',   'auto'),   // light | dark | auto
+  format:        param('format',  '12h'),    // 12h | 24h
+  show_date:     boolParam('show_date',     true),
+  show_location: boolParam('show_location', true),
+  show_weather:  boolParam('show_weather',  true),
+  show_seconds:  boolParam('show_seconds',  false),
+};
+
+/* ── Theme ──────────────────────────────────────── */
+function applyTheme(isDark) {
+  document.body.classList.toggle('light-mode', !isDark);
+}
+
+if (OPT.theme === 'dark') {
+  applyTheme(true);
+} else if (OPT.theme === 'light') {
+  applyTheme(false);
+} else {
+  // auto — follow system
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  applyTheme(mq.matches);
+  mq.addEventListener('change', e => applyTheme(e.matches));
+}
+
+/* ── Visibility: show/hide info row items ────────── */
+// hide date elements if not needed
+if (!OPT.show_date) {
+  document.getElementById('date-icon').style.display = 'none';
+  document.getElementById('date-span').style.display = 'none';
+}
+// separator between date + location
+if (!OPT.show_date || !OPT.show_location) {
+  document.getElementById('sep-dl').style.display = 'none';
+}
+// hide location elements if not needed
+if (!OPT.show_location) {
+  document.getElementById('loc-icon').style.display = 'none';
+  document.getElementById('loc-span').style.display = 'none';
+}
+// hide entire info row if nothing to show
+if (!OPT.show_date && !OPT.show_location && !OPT.show_weather) {
+  document.getElementById('info-row').style.display = 'none';
+}
+// seconds card
+if (OPT.show_seconds) {
+  document.getElementById('scard').style.display = '';
+  document.getElementById('sec-sep').style.display = '';
+}
+
+/* ── Helpers ────────────────────────────────────── */
+const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+function pad(n) { return String(n).padStart(2, '0'); }
+
+/* ── Numeral systems (same as index.html) ────────── */
+const LANGUAGES = [
+  { name: 'English',   digits: ['0','1','2','3','4','5','6','7','8','9'] },
+  { name: '中文',       digits: ['〇','一','二','三','四','五','六','七','八','九'] },
+  { name: 'हिन्दी',    digits: ['०','१','२','३','४','५','६','७','८','९'] },
+  { name: 'Français',  digits: ['0','1','2','3','4','5','6','7','8','9'] },
+  { name: 'عربي',      digits: ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'] },
+  { name: 'বাংলা',    digits: ['০','১','২','৩','৪','৫','৬','৭','৮','৯'] },
+  { name: 'Português', digits: ['0','1','2','3','4','5','6','7','8','9'] },
+  { name: 'Русский',   digits: ['0','1','2','3','4','5','6','7','8','9'] },
+  { name: 'اردو',      digits: ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'] },
+];
+const LANG_STYLE = [
+  { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
+  { ff: '"Noto Serif SC","Noto Sans SC",serif',                  ls: '0.05em',  scale: 0.72, ty: 0   },
+  { ff: '"Noto Sans Devanagari",sans-serif',                     ls: '0em',     scale: 0.80, ty: 4   },
+  { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
+  { ff: '"Noto Sans Arabic",sans-serif',                         ls: '0.04em',  scale: 0.78, ty: 6   },
+  { ff: '"Noto Sans Bengali",sans-serif',                        ls: '0em',     scale: 0.80, ty: 3   },
+  { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
+  { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
+  { ff: '"Noto Nastaliq Urdu","Noto Sans Arabic",sans-serif',    ls: '0.04em',  scale: 0.62, ty: -14 },
+];
+let langIdx = 0;
+
+function toLocalDigits(str) {
+  const d = LANGUAGES[langIdx].digits;
+  return str.replace(/[0-9]/g, n => d[+n]);
+}
+
+function applyLangFont() {
+  const s = LANG_STYLE[langIdx];
+  const root = document.documentElement;
+  const fsPx = parseFloat(getComputedStyle(root).getPropertyValue('--fs')) || 160;
+  const chPx = parseFloat(getComputedStyle(root).getPropertyValue('--ch')) || 220;
+  const scaled = Math.round(fsPx * s.scale);
+  const tyPx   = s.ty !== 0 ? Math.round(scaled * s.ty / 100) : 0;
+  document.querySelectorAll('.digit-wrap span').forEach(el => {
+    el.style.fontFamily    = s.ff || "'Oswald', sans-serif";
+    el.style.letterSpacing = s.ls;
+    el.style.fontSize      = scaled + 'px';
+    el.style.lineHeight    = '1';
+    el.style.transform     = '';
+  });
+  const topHalfTop = (chPx / 2 - scaled / 2) + tyPx;
+  const botHalfTop = -(scaled / 2) + tyPx;
+  document.querySelectorAll('.card-top .digit-wrap, .flap-top .digit-wrap').forEach(el => {
+    el.style.top    = topHalfTop + 'px';
+    el.style.height = scaled + 'px';
+  });
+  document.querySelectorAll('.card-bottom .digit-wrap, .flap-bottom .digit-wrap').forEach(el => {
+    el.style.top    = botHalfTop + 'px';
+    el.style.height = scaled + 'px';
+  });
+}
+
+/* ── Card state ─────────────────────────────────── */
+const cards = {
+  h: {
+    cur: '',
+    top:   document.getElementById('ht-val'),
+    bot:   document.getElementById('hb-val'),
+    fTop:  document.getElementById('hft'),
+    fBot:  document.getElementById('hfb'),
+    fTopV: document.getElementById('hft-val'),
+    fBotV: document.getElementById('hfb-val'),
+  },
+  m: {
+    cur: '',
+    top:   document.getElementById('mt-val'),
+    bot:   document.getElementById('mb-val'),
+    fTop:  document.getElementById('mft'),
+    fBot:  document.getElementById('mfb'),
+    fTopV: document.getElementById('mft-val'),
+    fBotV: document.getElementById('mfb-val'),
+  },
+  s: {
+    cur: '',
+    top:   document.getElementById('st-val'),
+    bot:   document.getElementById('sb-val'),
+    fTop:  document.getElementById('sft'),
+    fBot:  document.getElementById('sfb'),
+    fTopV: document.getElementById('sft-val'),
+    fBotV: document.getElementById('sfb-val'),
+  },
+};
+
+function setCard(c, val) {
+  [c.top, c.bot, c.fTopV, c.fBotV].forEach(el => el.textContent = val);
+  c.cur = val;
+}
+
+function flipCard(c, newVal) {
+  if (c.cur === newVal) return;
+  const old = c.cur;
+  c.fTopV.textContent = old;
+  c.fBotV.textContent = newVal;
+  c.bot.textContent   = newVal;
+  setTimeout(() => { c.top.textContent = newVal; }, 210);
+  c.fTop.classList.remove('go');
+  c.fBot.classList.remove('go');
+  void c.fTop.offsetWidth;
+  c.fTop.classList.add('go');
+  c.fBot.classList.add('go');
+  c.cur = newVal;
+}
+
+/* ── Click sound ────────────────────────────────── */
+function playClick() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.008));
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+    src.connect(gain);
+    gain.connect(ctx.destination);
+    src.start();
+    src.onended = () => ctx.close();
+  } catch(e) {}
+}
+
+/* ── Sizing — exact same math as index.html ─────── */
+function sizeCards() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const isLandscape = vw > vh;
+  const row = document.getElementById('clock-row');
+
+  // Same constants as index.html
+  const metaH   = OPT.show_date || OPT.show_location || OPT.show_weather ? 20 : 0;
+  const metaGap = metaH ? 10 : 0;
+  const safe    = 24;
+  const availH  = vh - metaH - metaGap - safe;
+  const availW  = vw - safe;
+
+  let cardW, cardH, cardGap, fs, ampmFs;
+
+  if (isLandscape) {
+    row.style.flexDirection = 'row';
+    row.style.alignItems    = 'center';
+    cardGap = Math.max(6, Math.round(vw * 0.012));
+    // For seconds: 3 cards + 1 sep + extra gap. For 2 cards: same as index.
+    if (OPT.show_seconds) {
+      // estimate sep width as ~0.04 of vw
+      const sepW = Math.round(vw * 0.04);
+      cardW = Math.round((availW - cardGap * 2 - sepW) / 3);
+    } else {
+      cardW = Math.round((availW - cardGap) / 2);
+    }
+    cardH = Math.round(cardW * 1.12);
+    if (cardH > availH) { cardH = availH; cardW = Math.round(cardH / 1.12); }
+  } else {
+    row.style.flexDirection = 'column';
+    row.style.alignItems    = 'center';
+    cardGap = Math.max(6, Math.round(vh * 0.012));
+    const numCards = OPT.show_seconds ? 3 : 2;
+    cardH = Math.round((availH - cardGap * (numCards - 1)) / numCards);
+    cardW = Math.round(vw * 0.90);
+    const minH = Math.round(cardW * 0.42);
+    const maxH = Math.round(cardW * 0.70);
+    cardH = Math.max(minH, Math.min(cardH, maxH));
+  }
+  cardW = Math.max(80, cardW);
+  cardH = Math.max(60, cardH);
+
+  const fsByH = Math.round(cardH / 0.72 * 0.78);
+  const fsByW = Math.round(cardW / 1.10);
+  fs     = Math.min(fsByH, fsByW);
+  ampmFs = Math.round(Math.min(cardW, cardH) * 0.075);
+  const r = Math.round(Math.min(cardW, cardH) * 0.07);
+
+  const root = document.documentElement;
+  root.style.setProperty('--cw',      cardW  + 'px');
+  root.style.setProperty('--ch',      cardH  + 'px');
+  root.style.setProperty('--fs',      fs     + 'px');
+  root.style.setProperty('--r',       r      + 'px');
+  root.style.setProperty('--ampm-fs', ampmFs + 'px');
+  root.style.setProperty('--gap',     cardGap + 'px');
+
+  const topOffset = Math.round(cardH / 2 - fs / 2);
+  const botOffset = -Math.round(fs / 2);
+  root.style.setProperty('--dw-top', topOffset + 'px');
+  root.style.setProperty('--dw-bot', botOffset + 'px');
+
+  document.querySelectorAll('.card-top .digit-wrap, .flap-top .digit-wrap').forEach(el => {
+    el.style.top = topOffset + 'px';
+  });
+  document.querySelectorAll('.card-bottom .digit-wrap, .flap-bottom .digit-wrap').forEach(el => {
+    el.style.top = botOffset + 'px';
+  });
+
+  row.style.gap = cardGap + 'px';
+
+  const metaFs = Math.max(9, Math.round(Math.min(vw, vh) * 0.016));
+  root.style.setProperty('--meta-fs',        metaFs + 'px');
+  root.style.setProperty('--meta-icon-size', (metaFs + 1) + 'px');
+
+  // Seconds separator font size
+  const secSep = document.getElementById('sec-sep');
+  if (secSep) secSep.style.fontSize = Math.round(fs * 0.55) + 'px';
+
+  document.getElementById('page').style.gap = Math.round(vh * 0.038) + 'px';
+
+  applyLangFont();
+
+  // postMessage for iframe auto-resize
+  try {
+    window.parent.postMessage({ type: 'flapclock-resize', height: document.body.scrollHeight }, '*');
+  } catch(e) {}
+}
+
+/* ── Settings state ─────────────────────────────── */
+let selectedTz = '';
+
+/* ── Tick — exact same logic as index.html ──────── */
+function tick() {
+  const now = new Date();
+  let hrs24, mins, secs, dayIdx, day, month, year;
+
+  if (selectedTz) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: selectedTz,
+        hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: false,
+        day: 'numeric', month: 'long', year: 'numeric', weekday: 'long'
+      }).formatToParts(now);
+      const p = {};
+      parts.forEach(pt => { p[pt.type] = pt.value; });
+      hrs24  = parseInt(p.hour, 10);
+      mins   = p.minute;
+      secs   = p.second;
+      day    = parseInt(p.day, 10);
+      month  = p.month;
+      year   = p.year;
+      dayIdx = DAYS.indexOf(p.weekday);
+    } catch(e) {
+      selectedTz = '';
+    }
+  }
+
+  if (!selectedTz) {
+    hrs24  = now.getHours();
+    mins   = pad(now.getMinutes());
+    secs   = pad(now.getSeconds());
+    day    = now.getDate();
+    month  = MONTHS[now.getMonth()];
+    year   = now.getFullYear();
+    dayIdx = now.getDay();
+  }
+
+  const isPM = hrs24 >= 12;
+
+  // Format — 12h vs 24h, same as index.html
+  let hStr;
+  if (OPT.format === '24h') {
+    hStr = toLocalDigits(pad(hrs24));
+  } else {
+    hStr = toLocalDigits(String(hrs24 % 12 || 12));
+  }
+  const mStr = toLocalDigits(String(mins).padStart(2, '0'));
+  const sStr = toLocalDigits(String(secs).padStart(2, '0'));
+
+  flipCard(cards.h, hStr);
+  flipCard(cards.m, mStr);
+  if (OPT.show_seconds) flipCard(cards.s, sStr);
+
+  // AM/PM badge — hide in 24h mode
+  const badge = document.getElementById('ampm-badge');
+  if (OPT.format === '24h') {
+    badge.style.display = 'none';
+  } else {
+    badge.style.display = '';
+    badge.textContent = isPM ? 'PM' : 'AM';
+  }
+
+  // Date
+  if (OPT.show_date) {
+    document.getElementById('date-span').textContent =
+      `${day} ${month} ${year}, ${DAYS[dayIdx >= 0 ? dayIdx : now.getDay()]}`;
+  }
+}
+
+/* ── Click sound on every second ───────────────── */
+let prevSec = -1;
+function tickWithSound() {
+  tick();
+  const s = new Date().getSeconds();
+  if (s !== prevSec) { playClick(); prevSec = s; }
+}
+
+/* ── Geolocation ────────────────────────────────── */
+function setLoc(t) {
+  document.getElementById('loc-span').textContent = t;
+}
+function reverseGeocode(lat, lon) {
+  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=14&addressdetails=1`,
+        { headers: { 'Accept-Language': 'en' } })
+    .then(r => r.json())
+    .then(d => {
+      const a = d.address || {};
+      const suburb  = a.suburb || a.neighbourhood || a.quarter || '';
+      const city    = a.city || a.town || a.village || a.municipality || a.county || '';
+      const state   = a.state || '';
+      const country = a.country_code ? a.country_code.toUpperCase() : (a.country || '');
+      let loc = '';
+      if (suburb && city && country)     loc = `${suburb}  ·  ${city}  ·  ${country}`;
+      else if (city && state && country) loc = `${city}  ·  ${state}  ·  ${country}`;
+      else if (city && country)          loc = `${city}  ·  ${country}`;
+      else if (state && country)         loc = `${state}  ·  ${country}`;
+      else loc = d.display_name ? d.display_name.split(',').slice(0,2).join(',').trim() : 'Unknown';
+      setLoc(loc);
+    })
+    .catch(() => setLoc('Location Unavailable'));
+}
+function ipFallback() {
+  fetch('https://ipapi.co/json/')
+    .then(r => r.json())
+    .then(d => {
+      const city    = d.city    || '';
+      const region  = d.region  || '';
+      const country = d.country_code || '';
+      let loc = '';
+      if (city && region && country)  loc = `${city}  ·  ${region}  ·  ${country}`;
+      else if (city && country)       loc = `${city}  ·  ${country}`;
+      else loc = 'Location Unavailable';
+      setLoc(loc);
+      if (d.latitude && d.longitude) fetchWeather(d.latitude, d.longitude);
+    })
+    .catch(() => setLoc('Location Unavailable'));
+}
+
+/* ── Weather ────────────────────────────────────── */
+function fetchWeather(lat, lon) {
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=celsius`)
+    .then(r => r.json())
+    .then(d => {
+      const w = d.current_weather;
+      if (!w) return;
+      const temp = Math.round(w.temperature);
+      const code = w.weathercode;
+      const icon = weatherIcon(code);
+      document.getElementById('weather-sep').style.display = '';
+      const iconWrap = document.getElementById('weather-icon-wrap');
+      iconWrap.style.display = 'inline-flex';
+      const iconEl = document.getElementById('weather-icon-el');
+      iconEl.innerHTML = icon;
+      const span = document.getElementById('weather-span');
+      span.style.display = '';
+      span.textContent = `${temp}°`;
+    })
+    .catch(() => {});
+}
+
+function weatherDesc(code) {
+  if (code === 0) return 'Clear';
+  if (code <= 2) return 'Partly Cloudy';
+  if (code === 3) return 'Overcast';
+  if (code <= 49) return 'Foggy';
+  if (code <= 59) return 'Drizzle';
+  if (code <= 69) return 'Rain';
+  if (code <= 79) return 'Snow';
+  if (code <= 82) return 'Showers';
+  if (code <= 86) return 'Snow Showers';
+  if (code <= 99) return 'Thunderstorm';
+  return '';
+}
+
+function weatherIcon(code) {
+  if (code === 0) return '<circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="16.95" y2="7.05"/><line x1="7.05" y1="16.95" x2="4.93" y2="19.07"/></g>';
+  if (code <= 2)  return '<circle cx="10" cy="10" r="3" fill="currentColor" opacity=".85"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".85"><line x1="10" y1="5.5" x2="10" y2="4"/><line x1="5.5" y1="10" x2="4" y2="10"/><line x1="7.22" y1="7.22" x2="6.1" y2="6.1"/><line x1="12.78" y1="7.22" x2="13.9" y2="6.1"/></g><path d="M8 14.5a4 4 0 0 1 0-8 3.97 3.97 0 0 1 3.5 2.1A3 3 0 0 1 15 11.5a3 3 0 0 1-3 3H8z" fill="currentColor" opacity=".5" stroke="currentColor" stroke-width="1.2"/>';
+  if (code <= 49) return '<g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="5" y1="16" x2="19" y2="16"/><line x1="7" y1="20" x2="17" y2="20" opacity=".5"/></g>';
+  if (code <= 82) return '<path d="M18.5 9.5A4.5 4.5 0 0 0 14 5a4.48 4.48 0 0 0-3.5 1.7A3 3 0 0 0 7 9.5a3 3 0 0 0 0 6h10a3.5 3.5 0 0 0 1.5-6.67V9.5z" fill="currentColor" opacity=".45" stroke="currentColor" stroke-width="1.4"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="18" x2="6" y2="22"/><line x1="12" y1="18" x2="10" y2="22"/><line x1="16" y1="18" x2="14" y2="22"/></g>';
+  if (code <= 86) return '<path d="M18.5 9.5A4.5 4.5 0 0 0 14 5a4.48 4.48 0 0 0-3.5 1.7A3 3 0 0 0 7 9.5a3 3 0 0 0 0 6h10a3.5 3.5 0 0 0 1.5-6.67V9.5z" fill="currentColor" opacity=".4" stroke="currentColor" stroke-width="1.4"/><g fill="currentColor"><circle cx="8" cy="20" r="1.2"/><circle cx="12" cy="21.5" r="1.2"/><circle cx="16" cy="20" r="1.2"/></g>';
+  return '<path d="M18.5 9.5A4.5 4.5 0 0 0 14 5a4.48 4.48 0 0 0-3.5 1.7A3 3 0 0 0 7 9.5a3 3 0 0 0 0 6h10a3.5 3.5 0 0 0 1.5-6.67V9.5z" fill="currentColor" opacity=".4" stroke="currentColor" stroke-width="1.4"/><polyline points="13,16 10,21 14,21 11,26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+}
+
+/* ── Geolocation init ───────────────────────────── */
+if (OPT.show_location || OPT.show_weather) {
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      p => {
+        if (OPT.show_location) reverseGeocode(p.coords.latitude, p.coords.longitude);
+        if (OPT.show_weather)  fetchWeather(p.coords.latitude, p.coords.longitude);
+      },
+      () => ipFallback(),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+  } else { ipFallback(); }
+} else {
+  // nothing needs geolocation — hide locating text
+  document.getElementById('loc-span').textContent = '';
+}
+
+/* ── Wake Lock ──────────────────────────────────── */
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try { await navigator.wakeLock.request('screen'); } catch(e) {}
+  }
+}
+requestWakeLock();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') requestWakeLock();
+});
+
+/* ── Init ───────────────────────────────────────── */
+sizeCards();
+setCard(cards.h, OPT.format === '24h' ? '00' : '12');
+setCard(cards.m, '00');
+if (OPT.show_seconds) setCard(cards.s, '00');
+tick();
+applyWeatherLayout();
+setInterval(() => { tickWithSound(); }, 1000);
+
+function applyWeatherLayout() { /* unified row — nothing to toggle */ }
+
+let rt;
+window.addEventListener('resize', () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => { sizeCards(); tick(); }, 60);
+});
+
+</script>
+</body>
+</html>
