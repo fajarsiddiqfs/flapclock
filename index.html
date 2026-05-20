@@ -693,6 +693,57 @@
 
     .setting-section { margin-bottom: 22px; }
 
+    /* ── Language grid ───────────────────────────────────── */
+    .lang-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .lang-btn {
+      padding: 8px 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.55);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-align: center;
+      cursor: pointer;
+      transition: background .18s, color .18s, border-color .18s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lang-btn:hover {
+      background: rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.85);
+      border-color: rgba(255,255,255,0.20);
+    }
+    .lang-btn.active {
+      background: rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.95);
+      border-color: rgba(255,255,255,0.35);
+      font-weight: 600;
+    }
+    body.light-mode .lang-btn {
+      border-color: rgba(0,0,0,0.10);
+      background: rgba(0,0,0,0.04);
+      color: rgba(0,0,0,0.50);
+    }
+    body.light-mode .lang-btn:hover {
+      background: rgba(0,0,0,0.08);
+      color: rgba(0,0,0,0.80);
+      border-color: rgba(0,0,0,0.18);
+    }
+    body.light-mode .lang-btn.active {
+      background: rgba(0,0,0,0.12);
+      color: rgba(0,0,0,0.90);
+      border-color: rgba(0,0,0,0.30);
+    }
+
     /* ── Timezone select ─────────────────────────────────── */
     .tz-select {
       width: 100%;
@@ -998,12 +1049,12 @@
       justify-self: end;
     }
     .mf-left:hover, .mf-right:hover { color: rgba(255,255,255,0.32); }
-    .mf-left:hover .mf-link, .mf-right:hover .mf-link { color: rgba(255,255,255,0.70); text-decoration: underline; }
+    .mf-left:hover .mf-link, .mf-right:hover .mf-link { color: rgba(255,255,255,0.70); text-decoration: none; }
     .mf-center:hover { color: rgba(255,255,255,0.90); }
     body.light-mode .mf-left, body.light-mode .mf-right { color: rgba(0,0,0,0.35); }
     body.light-mode .mf-center { color: rgba(0,0,0,0.60); }
     body.light-mode .mf-left:hover, body.light-mode .mf-right:hover { color: rgba(0,0,0,0.35); }
-    body.light-mode .mf-left:hover .mf-link, body.light-mode .mf-right:hover .mf-link { color: rgba(0,0,0,0.75); text-decoration: underline; }
+    body.light-mode .mf-left:hover .mf-link, body.light-mode .mf-right:hover .mf-link { color: rgba(0,0,0,0.75); text-decoration: none; }
     body.light-mode .mf-center:hover { color: rgba(0,0,0,0.90); }
 
 
@@ -1435,6 +1486,22 @@
     <!-- ── TAB: General ── -->
     <div class="tab-panel active" id="tab-general">
       <div class="setting-section">
+        <div class="setting-label">Clock Size</div>
+        <div class="clock-size-row">
+          <input type="range" id="clock-size-slider" class="clock-size-slider"
+                 min="0.6" max="1.0" step="0.01" value="1.0">
+          <span class="clock-size-value" id="clock-size-value">1.0×</span>
+        </div>
+      </div>
+      <div class="modal-divider"></div>
+      <div class="setting-section">
+        <div class="setting-label">Language</div>
+        <div class="lang-grid" id="lang-grid">
+          <!-- populated by JS -->
+        </div>
+      </div>
+      <div class="modal-divider"></div>
+      <div class="setting-section">
         <div class="setting-label">Timezone</div>
         <select class="tz-select" id="tz-select"></select>
       </div>
@@ -1453,15 +1520,6 @@
           </button>
         </div>
         <div class="copy-feedback" id="copy-feedback">Copied to clipboard!</div>
-      </div>
-      <div class="modal-divider"></div>
-      <div class="setting-section">
-        <div class="setting-label">Clock Size</div>
-        <div class="clock-size-row">
-          <input type="range" id="clock-size-slider" class="clock-size-slider"
-                 min="0.6" max="1.0" step="0.01" value="1.0">
-          <span class="clock-size-value" id="clock-size-value">1.0×</span>
-        </div>
       </div>
     </div>
 
@@ -1789,8 +1847,7 @@
         <svg class="modal-about-chevron" id="about-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="modal-about-body" id="about-body">
-        <p>Flap Clock was built with a simple idea: time should feel effortless. In a world full of distractions, most clocks try to do too much—or not enough. Flap Clock strips it back to what matters: clarity, precision, and presence.</p>
-        <p>A fullscreen flip clock that feels immediate, beautiful, and invisible at the same time. It's designed for any device, any moment—desktop or mobile—so the time is always exactly where you need it, when you need it. Nothing more. Nothing less.</p>
+        <p>A real-time flip clock for desktop and mobile featuring time, date, location, weather, timezone, alarms, ambient sounds, radio, and embed support in a clean fullscreen design.</p>
       </div>
     </div>
 
@@ -1831,7 +1888,7 @@
     <!-- ── Footer ── -->
     <div class="modal-footer">
       <a class="mf-left" href="https://euphorya.co" target="_blank" rel="noopener">Powered by <span class="mf-link">Euphorya</span></a>
-      <a class="mf-center" href="https://flapclock.com" target="_blank" rel="noopener">FlapClock.com © <span id="footer-year">2026</span></a>
+      <span class="mf-center">FlapClock.com © <span id="footer-year">2026</span></span>
       <a class="mf-right" href="https://fajarsiddiq.com" target="_blank" rel="noopener">Made by <span class="mf-link">Fajar Siddiq</span></a>
     </div>
 
@@ -1997,7 +2054,6 @@
     { name: 'English',   digits: ['0','1','2','3','4','5','6','7','8','9'] },
     { name: '中文',       digits: ['〇','一','二','三','四','五','六','七','八','九'] },
     { name: 'हिन्दी',    digits: ['०','१','२','३','४','५','६','७','८','९'] },
-    { name: 'Español',   digits: ['0','1','2','3','4','5','6','7','8','9'] },
     { name: 'Français',  digits: ['0','1','2','3','4','5','6','7','8','9'] },
     { name: 'عربي',      digits: ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'] },
     { name: 'বাংলা',    digits: ['০','১','২','৩','৪','৫','৬','৭','৮','৯'] },
@@ -2009,7 +2065,6 @@
     { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
     { ff: '"Noto Serif SC","Noto Sans SC",serif',                  ls: '0.05em',  scale: 0.72, ty: 0   },
     { ff: '"Noto Sans Devanagari",sans-serif',                     ls: '0em',     scale: 0.80, ty: 4   },
-    { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
     { ff: null,                                                    ls: '-0.02em', scale: 1.00, ty: 0   },
     { ff: '"Noto Sans Arabic",sans-serif',                         ls: '0.04em',  scale: 0.78, ty: 6   },
     { ff: '"Noto Sans Bengali",sans-serif',                        ls: '0em',     scale: 0.80, ty: 3   },
@@ -2061,48 +2116,34 @@
     });
   }
 
-  function cycleLang() {
-    langIdx = (langIdx + 1) % LANGUAGES.length;
+  function setLang(idx) {
+    langIdx = idx;
     applyLangFont();
     cards.h.cur = '';
     cards.m.cur = '';
     tick();
-    showLangToast(LANGUAGES[langIdx].name);
+    // update active button
+    document.querySelectorAll('.lang-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', i === idx);
+    });
   }
 
-  function showLangToast(name) {
-    const old = document.getElementById('lang-toast');
-    if (old) old.remove();
-    const t = document.createElement('div');
-    t.id = 'lang-toast';
-    t.textContent = name;
-    t.style.cssText = [
-      'position:fixed','top:18px','left:50%','transform:translateX(-50%)',
-      'background:rgba(20,20,20,0.85)','color:rgba(255,255,255,0.92)',
-      'font-family:Inter,sans-serif','font-size:14px','font-weight:600',
-      'padding:7px 18px','border-radius:20px','z-index:9999',
-      'pointer-events:none','opacity:1','transition:opacity 0.4s ease',
-      'white-space:nowrap'
-    ].join(';');
-    document.body.appendChild(t);
-    setTimeout(() => { t.style.opacity = '0'; }, 1400);
-    setTimeout(() => { if (t.parentNode) t.remove(); }, 1900);
+  function buildLangGrid() {
+    const grid = document.getElementById('lang-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    // all languages including English at index 0
+    for (let i = 0; i < LANGUAGES.length; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'lang-btn' + (langIdx === i ? ' active' : '');
+      btn.textContent = LANGUAGES[i].name;
+      btn.addEventListener('click', () => setLang(i));
+      grid.appendChild(btn);
+    }
   }
 
-  let lastLangTap = 0;
-  function onCardTap(e) {
-    if (e.target.closest('#ampm-badge')) return;
-    const now = Date.now();
-    if (now - lastLangTap < 600) return;
-    lastLangTap = now;
-    cycleLang();
-  }
-  ['hcard','mcard'].forEach(id => {
-    const el = document.getElementById(id);
-    el.addEventListener('touchstart', onCardTap, { passive: true });
-    el.addEventListener('click',      onCardTap);
-  });
-  document.querySelectorAll('.flip-card').forEach(el => { el.style.cursor = 'pointer'; });
+  // Build grid once modal is ready (DOM is already parsed)
+  buildLangGrid();
 
   /* ── Settings state (declared before tick) ──────────── */
   let selectedTz = '';
