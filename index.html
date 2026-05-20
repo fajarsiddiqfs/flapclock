@@ -695,6 +695,28 @@
 
 
 <script>
+
+  /* ── Click sound ─────────────────────────────────────── */
+  function playClick() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.008));
+      }
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+      src.connect(gain);
+      gain.connect(ctx.destination);
+      src.start();
+      src.onended = () => ctx.close();
+    } catch(e) {}
+  }
+
   const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const MONTHS = ['January','February','March','April','May','June',
                   'July','August','September','October','November','December'];
@@ -1017,6 +1039,7 @@
   /* ── theme toggle (click AM/PM badge) ──────────────── */
   let isLight = false;
   document.getElementById('ampm-badge').addEventListener('click', () => {
+    playClick();
     isLight = !isLight;
     document.body.classList.toggle('light-mode', isLight);
   });
@@ -1097,6 +1120,7 @@
   });
 
   settingsBtn.addEventListener('click', () => {
+    playClick();
     settingsModal.classList.add('open');
   });
   modalClose.addEventListener('click', () => {
