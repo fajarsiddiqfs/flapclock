@@ -2193,6 +2193,8 @@
   const fsExpand   = document.getElementById('fs-expand');
   const fsCompress = document.getElementById('fs-compress');
   const isIPhone   = /iPhone|iPod/.test(navigator.userAgent);
+  const isIPad     = /iPad/.test(navigator.userAgent) ||
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.navigator.standalone === true;
 
   function isInFullscreen() {
@@ -2218,7 +2220,7 @@
   }
 
   fsBtn.addEventListener('click', () => {
-    if (isIPhone) {
+    if (isIPhone || isIPad) {
       if (isStandalone) return;
       showIOSToast();
       window.scrollTo(0, 1);
