@@ -295,6 +295,15 @@
       .meta { font-size: clamp(9px, 2.4vw, 12px); letter-spacing: 0.03em; }
       .meta-sep { opacity: 0.35; }
     }
+
+    /* Mini embed preview: very small viewport heights */
+    @media (max-height: 300px) {
+      .meta-icon { display: none; }
+      #weather-icon-wrap { width: 10px !important; height: 10px !important; }
+      #weather-icon-el { width: 10px !important; height: 10px !important; }
+      .meta { font-size: clamp(6px, 1.6vh, 8px) !important; letter-spacing: 0.01em; }
+      .meta-row { gap: 0.15em; }
+    }
     .meta {
       font-family: 'Inter', sans-serif;
       font-size: var(--meta-fs, 10px);
@@ -2272,10 +2281,10 @@
     const vh = window.innerHeight;
     const isLandscape = vw > vh;
     const row = document.getElementById('clock-row');
-    const metaFs  = Math.max(8, Math.round(Math.min(vw, vh) * 0.016));
-    const metaH   = Math.max(12, Math.round(metaFs * 1.4));
-    const metaGap = Math.max(4,  Math.round(vh * 0.012));
-    const safe    = Math.max(10, Math.round(vh * 0.025));
+    const metaFs  = Math.max(6, Math.round(Math.min(vw, vh) * 0.016));
+    const metaH   = Math.max(8,  Math.round(metaFs * 1.4));
+    const metaGap = Math.max(3,  Math.round(vh * 0.010));
+    const safe    = Math.max(6,  Math.round(vh * 0.020));
     const availH  = vh - metaH - metaGap - safe;
     const availW = vw - safe;
     let cardW, cardH, cardGap, fs, ampmFs;
