@@ -26,7 +26,13 @@
     <meta name="twitter:title" content="Flap Clock – Clean Fullscreen Clock for Desktop & Mobile" />
     <meta name="twitter:description" content="A real-time flip clock for desktop and mobile featuring time, date, location, weather, timezone, alarms, ambient sounds, radio, and embed support in a clean fullscreen design." />
     <meta name="twitter:image" content="https://i.ibb.co/sdkLtYX5/metaflapclock.png" />
-      <!-- iOS Web App (Add to Home Screen = true fullscreen) -->
+      <!-- Preconnect to radio stream hosts for faster first-play -->
+    <link rel="preconnect" href="https://ice1.somafm.com" crossorigin>
+    <link rel="dns-prefetch" href="https://ice1.somafm.com">
+    <link rel="preconnect" href="https://Qurango.net" crossorigin>
+    <link rel="dns-prefetch" href="https://Qurango.net">
+
+    <!-- iOS Web App (Add to Home Screen = true fullscreen) -->
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       <meta name="apple-mobile-web-app-title" content="Flap Clock" />
@@ -3885,40 +3891,24 @@
 
 
   /* ══════════════════════════════════════════════════════
-     RADIO PLAYER
+     RADIO PLAYER  — pre-warmed for instant playback
   ══════════════════════════════════════════════════════ */
   (function() {
-    let radioAudio    = null;
-    let radioPlaying  = null; // currently playing .radio-item element
+    var radioPlaying = null;   // currently playing .radio-item element
+    var radioAudio   = null;   // currently playing Audio object
+    var warmed       = {};     // url → Audio (pre-warmed, muted, paused)
+    var warmedStarted = false;
 
     function getRadioVolume() {
-      const v = document.getElementById('radio-volume');
+      var v = document.getElementById('radio-volume');
       return v ? parseInt(v.value, 10) / 100 : 0.7;
     }
 
     function showError(msg) {
-      const el = document.getElementById('radio-error');
+      var el = document.getElementById('radio-error');
       if (!el) return;
       el.textContent = msg;
       el.style.display = msg ? 'block' : 'none';
-    }
-
-    var RADIO_FADE_MS = 150; // short fade-out only (ms)
-
-    function fadeOutAndStop(audioEl, ms, cb) {
-      if (!audioEl) { if (cb) cb(); return; }
-      var start     = audioEl.volume;
-      var steps     = Math.max(1, Math.round(ms / 20));
-      var stepVal   = start / steps;
-      var interval  = setInterval(function() {
-        if (!audioEl) { clearInterval(interval); if (cb) cb(); return; }
-        audioEl.volume = Math.max(0, audioEl.volume - stepVal);
-        if (audioEl.volume <= 0) {
-          clearInterval(interval);
-          try { audioEl.pause(); audioEl.src = ''; } catch(e) {}
-          if (cb) cb();
-        }
-      }, 20);
     }
 
     function clearRadioUI(el) {
@@ -3932,36 +3922,50 @@
     }
 
     function stopRadio(restoreUI) {
-      var old = radioAudio;
+      if (radioAudio) { try { radioAudio.pause(); } catch(e) {} }
       radioAudio = null;
-      if (old) { try { old.pause(); old.src = ''; } catch(e) {} }
       if (restoreUI) clearRadioUI(radioPlaying);
       radioPlaying = null;
       showError('');
     }
 
+    /* Pre-warm: create muted Audio for every station, start loading.
+       We do NOT call play() — that needs a user gesture.
+       But setting .src causes the browser to open the TCP connection
+       and fill a small buffer, so when the user clicks it's near-instant. */
+    function warmAll() {
+      if (warmedStarted) return;
+      warmedStarted = true;
+      var items = document.querySelectorAll('.radio-item[data-url]');
+      items.forEach(function(item) {
+        var url = item.dataset.url;
+        if (!url || warmed[url]) return;
+        var a = new Audio();
+        a.volume  = 0;
+        a.preload = 'auto';   // actively buffer
+        a.src     = url;
+        // Don't call play() — just let it buffer silently
+        warmed[url] = a;
+      });
+    }
+
     function playRadio(item) {
       var url = item.dataset.url;
 
-      // Toggle off if same station
+      // Toggle off same station
       if (radioPlaying === item) {
-        var dying = radioAudio;
-        radioAudio = null;
-        radioPlaying = null;
-        clearRadioUI(item);
-        fadeOutAndStop(dying, RADIO_FADE_MS, null);
-        showError('');
+        stopRadio(true);
+        // Re-warm this station so it's ready next time
+        var rw = new Audio();
+        rw.volume = 0; rw.preload = 'auto'; rw.src = url;
+        warmed[url] = rw;
         return;
       }
 
       showError('');
 
-      // Mark new item as loading immediately so UI feels responsive
-      var prevItem  = radioPlaying;
-      var prevAudio = radioAudio;
-
-      // Optimistically update UI right away
-      clearRadioUI(prevItem);
+      // Update UI immediately
+      clearRadioUI(radioPlaying);
       radioPlaying = item;
       item.classList.add('playing');
       var playBtn = item.querySelector('.sound-play-btn');
@@ -3970,40 +3974,31 @@
         playBtn.querySelector('.icon-pause').style.display = '';
       }
 
-      // Fade out old stream immediately so there's no overlap delay
-      fadeOutAndStop(prevAudio, RADIO_FADE_MS, null);
+      // Stop old stream instantly (no fade — speed matters)
+      if (radioAudio) { try { radioAudio.pause(); } catch(e) {} }
+      radioAudio = null;
 
-      // Start new stream at full volume right away — no fade-in delay
-      var newAudio = new Audio();
-      newAudio.volume  = getRadioVolume();
-      newAudio.preload = 'none'; // don't buffer until play() — saves bandwidth on skip
-      newAudio.src     = url;
-      radioAudio       = newAudio;
+      // Grab the pre-warmed audio if available, else create fresh
+      var a = warmed[url] || new Audio();
+      delete warmed[url]; // take it out of the pool
 
-      newAudio.play().then(function() {
-        // playing — nothing extra needed
+      a.volume = getRadioVolume();
+
+      a.play().then(function() {
+        radioAudio = a;
+        // Pre-warm the remaining stations while user listens
+        warmAll();
       }).catch(function(err) {
-        // Autoplay blocked or stream failed
         showError('Stream unavailable. Try another station.');
         clearRadioUI(item);
         if (radioPlaying === item) { radioPlaying = null; radioAudio = null; }
-        try { newAudio.src = ''; } catch(e) {}
-        // Restore prev if still valid
-        if (prevAudio && prevItem) {
-          radioAudio   = prevAudio;
-          radioPlaying = prevItem;
-          prevItem.classList.add('playing');
-          var pb = prevItem.querySelector('.sound-play-btn');
-          if (pb) {
-            pb.querySelector('.icon-play').style.display  = 'none';
-            pb.querySelector('.icon-pause').style.display = '';
-          }
-          prevAudio.volume = getRadioVolume();
-          prevAudio.play().catch(function() {});
-        }
+        // Re-warm this url for retry
+        var rw = new Audio();
+        rw.volume = 0; rw.preload = 'auto'; rw.src = url;
+        warmed[url] = rw;
       });
 
-      newAudio.addEventListener('error', function() {
+      a.addEventListener('error', function() {
         if (radioPlaying === item) {
           showError('Stream unavailable. Try another station.');
           stopRadio(true);
@@ -4011,17 +4006,31 @@
       });
     }
 
+    // Radio tab click → warm all streams immediately (user gesture context)
+    document.querySelectorAll('.modal-tab[data-tab="radio"]').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        // Small delay so tab content is visible first
+        setTimeout(warmAll, 300);
+      });
+    });
+
+    // Also warm on first interaction anywhere (covers cases where tab is already open)
+    document.addEventListener('click', function onFirstClick() {
+      warmAll();
+      document.removeEventListener('click', onFirstClick);
+    }, { once: true });
+
     // Radio list click
-    const radioList = document.getElementById('radio-list');
+    var radioList = document.getElementById('radio-list');
     if (radioList) {
-      radioList.addEventListener('click', e => {
-        const item = e.target.closest('.radio-item');
+      radioList.addEventListener('click', function(e) {
+        var item = e.target.closest('.radio-item');
         if (item) playRadio(item);
       });
     }
 
     // Volume slider
-    const volSlider = document.getElementById('radio-volume');
+    var volSlider = document.getElementById('radio-volume');
     if (volSlider) {
       volSlider.addEventListener('input', function() {
         if (radioAudio) radioAudio.volume = this.value / 100;
