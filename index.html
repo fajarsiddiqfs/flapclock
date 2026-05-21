@@ -29,8 +29,8 @@
       <!-- Preconnect to radio stream hosts for faster first-play -->
     <link rel="preconnect" href="https://ice.somafm.com" crossorigin>
     <link rel="dns-prefetch" href="https://ice.somafm.com">
-    <link rel="preconnect" href="https://qurango.net" crossorigin>
-    <link rel="dns-prefetch" href="https://qurango.net">
+    <link rel="preconnect" href="https://stream.radiojar.com" crossorigin>
+    <link rel="dns-prefetch" href="https://stream.radiojar.com">
 
     <!-- iOS Web App (Add to Home Screen = true fullscreen) -->
       <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2222,13 +2222,13 @@
       <div class="setting-label" style="margin-bottom:14px">Flap Clock FM</div>
       <div class="sound-list" id="radio-list">
 
-        <div class="sound-item radio-item" data-url="https://qurango.net/radio/tarateel" data-title="Quran Recitation">
+        <div class="sound-item radio-item" data-url="https://stream.radiojar.com/0tpy1h0kxtzuv" data-title="Quran Recitation">
           <div class="sound-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8 2 5 5 5 9c0 2.5 1.2 4.7 3 6.1V17h8v-1.9c1.8-1.4 3-3.6 3-6.1 0-4-3-7-7-7z"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/><path d="M9 9c0-1.7 1.3-3 3-3s3 1.3 3 3"/><line x1="12" y1="6" x2="12" y2="9"/></svg>
           </div>
           <div class="sound-info">
             <div class="sound-name">Quran Recitation</div>
-            <div class="sound-desc">QuranFM – Live Recitation</div>
+            <div class="sound-desc">QuranFM · Live Recitation</div>
           </div>
           <div class="sound-ctrl">
             <div class="sound-play-btn">
@@ -3985,24 +3985,22 @@
       if (radioAudio) { try { radioAudio.pause(); } catch(e) {} }
       radioAudio = null;
 
-      // Grab the pre-warmed audio if available, else create fresh
-      var a = warmed[url] || new Audio();
-      delete warmed[url]; // take it out of the pool
-
+      // Always create a fresh Audio for live streams — reusing a paused
+      // live-stream object causes browsers to fail on replay
+      if (warmed[url]) {
+        try { warmed[url].pause(); } catch(e) {}
+        delete warmed[url];
+      }
+      var a = new Audio();
       a.volume = getRadioVolume();
+      a.src = url;
 
       a.play().then(function() {
         radioAudio = a;
-        // Pre-warm the remaining stations while user listens
-        warmAll();
       }).catch(function(err) {
         showError('Stream unavailable. Try another station.');
         clearRadioUI(item);
         if (radioPlaying === item) { radioPlaying = null; radioAudio = null; }
-        // Re-warm this url for retry
-        var rw = new Audio();
-        rw.volume = 0; rw.preload = 'auto'; rw.src = url;
-        warmed[url] = rw;
       });
 
       a.addEventListener('error', function() {
