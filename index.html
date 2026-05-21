@@ -654,78 +654,152 @@
         align-items: flex-end;
       }
       .modal {
-        border-radius: 16px 16px 0 0;
+        border-radius: 20px 20px 0 0;
         width: 100%;
         max-width: 100%;
         height: auto;
-        max-height: 78vh;
+        max-height: 85vh;
         min-height: unset;
-        padding: 16px 14px 28px;
+        padding: 20px 16px 32px;
+      }
+      /* Drag handle pill */
+      .modal::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255,255,255,0.18);
+        margin: 0 auto 16px;
+      }
+      body.light-mode .modal::before {
+        background: rgba(0,0,0,0.14);
       }
       .modal-header {
-        margin-bottom: 14px;
+        margin-bottom: 16px;
       }
       .modal-title {
-        font-size: 15px;
+        font-size: 16px;
+        font-weight: 700;
       }
       .modal-close {
-        width: 26px;
-        height: 26px;
+        width: 30px;
+        height: 30px;
       }
       .modal-tabs {
-        margin-bottom: 12px;
-        border-radius: 10px;
-        padding: 3px;
+        margin-bottom: 14px;
+        border-radius: 12px;
+        padding: 4px;
         gap: 3px;
       }
       .modal-tab {
-        font-size: 9px;
-        padding: 6px 3px;
-        border-radius: 8px;
+        font-size: 10px;
+        padding: 8px 4px;
+        border-radius: 9px;
+        font-weight: 600;
       }
       .setting-section {
-        margin-bottom: 14px;
+        margin-bottom: 16px;
+      }
+      .setting-label {
+        font-size: 10px;
+        margin-bottom: 8px;
+      }
+      .tab-content-wrap {
+        margin-bottom: 12px;
+      }
+      .modal-footer {
+        font-size: 9px;
+        padding-top: 10px;
       }
     }
 
-    /* ── Landscape iPhone (bottom sheet, very compact) ── */
-    @media (max-width: 812px) and (orientation: landscape) and (max-height: 430px) {
+    /* ── Landscape iPhone (side-anchored sheet, two-column feel) ── */
+    @media (max-width: 932px) and (orientation: landscape) and (max-height: 480px) {
       .modal-overlay {
         padding: 0;
         align-items: flex-end;
+        justify-content: flex-end;
       }
       .modal {
-        border-radius: 16px 16px 0 0;
+        border-radius: 20px 20px 0 0;
         width: 100%;
         max-width: 100%;
         height: auto;
-        max-height: 88vh;
+        max-height: 92vh;
         min-height: unset;
-        padding: 12px 14px 18px;
+        padding: 14px 20px 20px;
+        /* two-column layout: tabs left, content right */
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+      }
+      /* Drag handle pill */
+      .modal::before {
+        content: '';
+        display: block;
+        width: 32px;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255,255,255,0.18);
+        margin: 0 auto 12px;
+        grid-column: 1 / -1;
+      }
+      body.light-mode .modal::before {
+        background: rgba(0,0,0,0.14);
       }
       .modal-header {
         margin-bottom: 10px;
+        grid-column: 1 / -1;
       }
       .modal-title {
-        font-size: 15px;
+        font-size: 14px;
+        font-weight: 700;
       }
       .modal-close {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
       }
       .modal-tabs {
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         border-radius: 10px;
         padding: 3px;
-        gap: 3px;
+        gap: 2px;
+        grid-column: 1 / -1;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
       }
+      .modal-tabs::-webkit-scrollbar { display: none; }
       .modal-tab {
-        font-size: 9px;
-        padding: 5px 3px;
+        font-size: 10px;
+        padding: 6px 6px;
         border-radius: 8px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .tab-content-wrap {
+        margin-bottom: 8px;
+        grid-column: 1 / -1;
       }
       .setting-section {
-        margin-bottom: 12px;
+        margin-bottom: 10px;
+      }
+      .setting-label {
+        font-size: 9px;
+        margin-bottom: 6px;
+      }
+      .modal-footer {
+        font-size: 9px;
+        padding-top: 8px;
+        grid-column: 1 / -1;
+      }
+      .modal-about {
+        padding: 10px 12px;
+        font-size: 10px;
+      }
+      .modal-divider {
+        margin: 0 0 12px;
       }
     }
     body.light-mode .modal {
