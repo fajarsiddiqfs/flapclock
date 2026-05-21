@@ -714,73 +714,79 @@
       }
     }
 
-    /* ── Landscape iPhone (side-anchored sheet, two-column feel) ── */
+    /* ── Landscape iPhone — right side sheet ── */
     @media (max-width: 932px) and (orientation: landscape) and (max-height: 480px) {
       .modal-overlay {
         padding: 0;
-        align-items: flex-end;
+        align-items: stretch;
         justify-content: flex-end;
       }
       .modal {
-        border-radius: 20px 20px 0 0;
-        width: 100%;
-        max-width: 100%;
-        height: 88vh;
-        max-height: 88vh;
-        min-height: 88vh;
-        padding: 14px 20px 20px;
-        /* two-column layout: tabs left, content right */
-        display: grid;
-        grid-template-rows: auto auto 1fr auto;
+        /* side sheet: full height, right-anchored, partial width */
+        border-radius: 20px 0 0 20px;
+        width: 75vw;
+        max-width: 360px;
+        min-width: 260px;
+        height: 100vh;
+        max-height: 100vh;
+        min-height: 100vh;
+        padding: 16px 16px 16px 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
-      /* Drag handle pill */
+      /* Drag handle pill — vertical, on left edge */
       .modal::before {
         content: '';
-        display: block;
-        width: 32px;
-        height: 4px;
+        position: absolute;
+        left: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 40px;
         border-radius: 2px;
         background: rgba(255,255,255,0.18);
-        margin: 0 auto 12px;
-        grid-column: 1 / -1;
       }
       body.light-mode .modal::before {
         background: rgba(0,0,0,0.14);
       }
       .modal-header {
         margin-bottom: 10px;
-        grid-column: 1 / -1;
+        flex-shrink: 0;
       }
       .modal-title {
         font-size: 14px;
         font-weight: 700;
       }
       .modal-close {
-        width: 28px;
-        height: 28px;
+        width: 26px;
+        height: 26px;
       }
       .modal-tabs {
         margin-bottom: 10px;
         border-radius: 10px;
         padding: 3px;
         gap: 2px;
-        grid-column: 1 / -1;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         flex-wrap: nowrap;
+        flex-shrink: 0;
       }
       .modal-tabs::-webkit-scrollbar { display: none; }
       .modal-tab {
         font-size: 10px;
-        padding: 6px 6px;
+        padding: 6px 5px;
         border-radius: 8px;
         font-weight: 600;
         flex-shrink: 0;
       }
       .tab-content-wrap {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         margin-bottom: 8px;
-        grid-column: 1 / -1;
+        min-height: 0;
       }
       .setting-section {
         margin-bottom: 10px;
@@ -792,14 +798,14 @@
       .modal-footer {
         font-size: 9px;
         padding-top: 8px;
-        grid-column: 1 / -1;
+        flex-shrink: 0;
       }
       .modal-about {
         padding: 10px 12px;
         font-size: 10px;
       }
       .modal-divider {
-        margin: 0 0 12px;
+        margin: 0 0 10px;
       }
     }
     body.light-mode .modal {
@@ -2848,10 +2854,17 @@
     let startY = 0, startX = 0, dragging = false;
 
     modalEl.addEventListener('touchstart', function (e) {
-      /* Only start drag from the top 56px (header / handle area) */
-      const rect = modalEl.getBoundingClientRect();
-      const touchY = e.touches[0].clientY - rect.top;
-      if (touchY > 56) return;
+      const isLand = window.innerHeight <= 480 && window.innerWidth > window.innerHeight;
+      const rect   = modalEl.getBoundingClientRect();
+      if (isLand) {
+        /* Side sheet: drag from left 56px strip */
+        const touchX = e.touches[0].clientX - rect.left;
+        if (touchX > 56) return;
+      } else {
+        /* Bottom sheet: drag from top 56px strip */
+        const touchY = e.touches[0].clientY - rect.top;
+        if (touchY > 56) return;
+      }
       startY   = e.touches[0].clientY;
       startX   = e.touches[0].clientX;
       dragging = true;
@@ -2860,19 +2873,29 @@
 
     modalEl.addEventListener('touchmove', function (e) {
       if (!dragging) return;
+      const isLand = window.innerHeight <= 480 && window.innerWidth > window.innerHeight;
       const dy = e.touches[0].clientY - startY;
       const dx = e.touches[0].clientX - startX;
-      /* Cancel if horizontal swipe */
-      if (Math.abs(dx) > Math.abs(dy)) { dragging = false; return; }
-      if (dy < 0) { modalEl.style.transform = ''; return; }
-      modalEl.style.transform = 'translateY(' + dy + 'px)';
+      if (isLand) {
+        /* Side sheet: swipe right to dismiss */
+        if (Math.abs(dy) > Math.abs(dx)) { dragging = false; return; }
+        if (dx < 0) { modalEl.style.transform = ''; return; }
+        modalEl.style.transform = 'translateX(' + dx + 'px)';
+      } else {
+        /* Bottom sheet: swipe down to dismiss */
+        if (Math.abs(dx) > Math.abs(dy)) { dragging = false; return; }
+        if (dy < 0) { modalEl.style.transform = ''; return; }
+        modalEl.style.transform = 'translateY(' + dy + 'px)';
+      }
     }, { passive: true });
 
     modalEl.addEventListener('touchend', function (e) {
       if (!dragging) return;
       dragging = false;
+      const isLand = window.innerHeight <= 480 && window.innerWidth > window.innerHeight;
       const dy = e.changedTouches[0].clientY - startY;
-      if (dy > 80) {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (isLand ? dx > 80 : dy > 80) {
         closeModal();
       } else {
         modalEl.style.transition = 'transform 0.25s ease';
