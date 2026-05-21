@@ -4342,16 +4342,57 @@
          they follow the clock no matter the screen width.
       ══════════════════════════════════════════════════════ */
 
-      /* 1. "Click Me!" — label just above-right of AM/PM badge.
-            Math.max keeps it from going off the top edge in landscape.
-            Arrow tip (tx,ty) = badge centre; label (lx,ly) = above-right. */
-      drawHint(
-        document.getElementById('hint-ampm'),
-        ac.x,       ac.y,
-        ac.x + 48,  Math.max(ac.y - 22, 14),
-        'Click Me!',
-        'start'
-      );
+      /* 1. "Click Me!" — label above-right of AM/PM badge.
+            Drawn manually so the arrowhead points precisely at the badge
+            and the tail starts near the label text. */
+      (function () {
+        var g1  = document.getElementById('hint-ampm');
+        g1.innerHTML = '';
+        var col = inkColor();
+        var NS1 = 'http://www.w3.org/2000/svg';
+
+        /* Label position: to the right and slightly below badge */
+        var lx = ac.x + 52;
+        var ly = Math.max(ac.y + 8, 16);
+
+        /* Arrow: tail starts near label, tip points at badge */
+        var sx = lx - 8,  sy = ly - 14;   /* tail — just above label */
+        var ex = ac.x + 6, ey = ac.y + 4; /* tip  — on the badge */
+        /* gentle leftward curve */
+        var cx = (sx + ex) / 2 - 10;
+        var cy = (sy + ey) / 2 - 12;
+
+        var path = document.createElementNS(NS1, 'path');
+        path.setAttribute('d', 'M'+sx+' '+sy+' Q'+cx+' '+cy+' '+ex+' '+ey);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', col);
+        path.setAttribute('stroke-width', '1.5');
+        path.setAttribute('stroke-linecap', 'round');
+        g1.appendChild(path);
+
+        /* Arrowhead at tip (ex, ey) pointing toward badge */
+        var headLen = 6;
+        var ang = Math.atan2(ey - cy, ex - cx);
+        [ang - 0.45, ang + 0.45].forEach(function (a) {
+          var ln = document.createElementNS(NS1, 'line');
+          ln.setAttribute('x1', ex); ln.setAttribute('y1', ey);
+          ln.setAttribute('x2', ex - headLen * Math.cos(a));
+          ln.setAttribute('y2', ey - headLen * Math.sin(a));
+          ln.setAttribute('stroke', col);
+          ln.setAttribute('stroke-width', '1.5');
+          ln.setAttribute('stroke-linecap', 'round');
+          g1.appendChild(ln);
+        });
+
+        var t = document.createElementNS(NS1, 'text');
+        t.setAttribute('x', lx);
+        t.setAttribute('y', ly);
+        t.setAttribute('text-anchor', 'start');
+        t.setAttribute('class', 'sk-label');
+        t.setAttribute('fill', col);
+        t.textContent = 'Click Me!';
+        g1.appendChild(t);
+      }());
 
       /* 2. "Settings" — label left of gear, arrow right to gear */
       (function () {
