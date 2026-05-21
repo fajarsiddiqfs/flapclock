@@ -4211,9 +4211,9 @@
       drawHint(
         document.getElementById('hint-ampm'),
         ac.x, ac.y,
-        ac.x + 18, ac.y - 55,
+        ac.x - 10, ac.y - 55,
         'Click Me!',
-        'start'
+        'end'
       );
 
       /* 2. "Settings" — label left of gear, arrow right to gear */
@@ -4277,7 +4277,7 @@
         var tailGap = 40;
         var sx = arrowLx + nx * tailGap;
         var sy = arrowLy + 28;
-        var tipGap = 42;
+        var tipGap = 22;
         var ex = fc.x - nx * tipGap;
         var ey = fc.y - ny * tipGap;
         var mx = (sx+ex)/2 - ny*12;
