@@ -26,7 +26,13 @@
     <meta name="twitter:title" content="Flap Clock – Clean Fullscreen Clock for Desktop & Mobile" />
     <meta name="twitter:description" content="A real-time flip clock for desktop and mobile featuring time, date, location, weather, timezone, alarms, ambient sounds, radio, and embed support in a clean fullscreen design." />
     <meta name="twitter:image" content="https://i.ibb.co/sdkLtYX5/metaflapclock.png" />
-      <!-- iOS Web App (Add to Home Screen = true fullscreen) -->
+      <!-- Preconnect to radio stream hosts for faster first-play -->
+    <link rel="preconnect" href="https://ice.somafm.com" crossorigin>
+    <link rel="dns-prefetch" href="https://ice.somafm.com">
+    <link rel="preconnect" href="https://stream.radiojar.com" crossorigin>
+    <link rel="dns-prefetch" href="https://stream.radiojar.com">
+
+    <!-- iOS Web App (Add to Home Screen = true fullscreen) -->
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       <meta name="apple-mobile-web-app-title" content="Flap Clock" />
@@ -2222,7 +2228,7 @@
           </div>
           <div class="sound-info">
             <div class="sound-name">Quran Recitation</div>
-            <div class="sound-desc">QuranFM – Live Recitation</div>
+            <div class="sound-desc">QuranFM · Live Recitation</div>
           </div>
           <div class="sound-ctrl">
             <div class="sound-play-btn">
@@ -2232,7 +2238,7 @@
           </div>
         </div>
 
-        <div class="sound-item radio-item" data-url="https://ice1.somafm.com/groovesalad-128-mp3" data-title="Groove Salad">
+        <div class="sound-item radio-item" data-url="https://ice.somafm.com/groovesalad" data-title="Groove Salad">
           <div class="sound-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
           </div>
@@ -2248,7 +2254,7 @@
           </div>
         </div>
 
-        <div class="sound-item radio-item" data-url="https://ice1.somafm.com/deepspaceone-128-mp3" data-title="Deep Space One">
+        <div class="sound-item radio-item" data-url="https://ice.somafm.com/deepspaceone" data-title="Deep Space One">
           <div class="sound-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>
           </div>
@@ -2264,7 +2270,7 @@
           </div>
         </div>
 
-        <div class="sound-item radio-item" data-url="https://ice1.somafm.com/dronezone-128-mp3" data-title="Drone Zone">
+        <div class="sound-item radio-item" data-url="https://ice.somafm.com/dronezone" data-title="Drone Zone">
           <div class="sound-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
           </div>
@@ -2280,7 +2286,7 @@
           </div>
         </div>
 
-        <div class="sound-item radio-item" data-url="https://ice1.somafm.com/lush-128-mp3" data-title="Lush">
+        <div class="sound-item radio-item" data-url="https://ice.somafm.com/lush" data-title="Lush">
           <div class="sound-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12"/><path d="M12 12C12 12 7 10 7 5a5 5 0 0 1 10 0c0 5-5 7-5 7z"/></svg>
           </div>
@@ -3802,12 +3808,40 @@
     }
   };
 
-  function stopSound() {
-    soundNodes.forEach(n => {
-      try { if (n.stop) n.stop(); } catch(e) {}
-      try { n.disconnect(); } catch(e) {}
-    });
+  function stopSound(fadeMs) {
+    var fade = (typeof fadeMs === 'number') ? fadeMs : 0;
+    var nodesToStop = soundNodes.slice();
     soundNodes = [];
+
+    if (fade > 0 && masterGain) {
+      // Fade out existing nodes gracefully
+      try {
+        var ctx = ensureCtx();
+        var now = ctx.currentTime;
+        masterGain.gain.cancelScheduledValues(now);
+        masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+        masterGain.gain.linearRampToValueAtTime(0, now + fade / 1000);
+        setTimeout(function() {
+          nodesToStop.forEach(function(n) {
+            try { if (n.stop) n.stop(); } catch(e) {}
+            try { n.disconnect(); } catch(e) {}
+          });
+          // Reset gain for next sound
+          try { masterGain.gain.cancelScheduledValues(0); masterGain.gain.value = getSoundVolume(); } catch(e) {}
+        }, fade + 50);
+      } catch(e) {
+        nodesToStop.forEach(function(n) {
+          try { if (n.stop) n.stop(); } catch(e2) {}
+          try { n.disconnect(); } catch(e2) {}
+        });
+      }
+    } else {
+      nodesToStop.forEach(function(n) {
+        try { if (n.stop) n.stop(); } catch(e) {}
+        try { n.disconnect(); } catch(e) {}
+      });
+    }
+
     if (soundPlaying) {
       soundPlaying.classList.remove('playing');
       soundPlaying.querySelector('.icon-play').style.display  = '';
@@ -3817,18 +3851,31 @@
   }
 
   function playSound(item) {
-    const id     = item.dataset.sound;
-    const isSame = soundPlaying === item;
-    stopSound();
+    var id     = item.dataset.sound;
+    var isSame = soundPlaying === item;
+    var FADE   = 200; // ms crossfade
+
+    // Stop radio if playing
+    if (typeof window._stopRadio === 'function') window._stopRadio(true);
+
+    stopSound(FADE);
     if (isSame) return; // toggle off
 
-    try {
-      const ctx    = ensureCtx();
-      const master = getMaster(ctx);
-      master.gain.value = getSoundVolume();
-      const synth = SYNTHS[id];
-      if (synth) soundNodes = synth(ctx, master);
-    } catch(e) { console.warn('Sound error:', e); }
+    // Delay starting new sound slightly so fade-out overlaps cleanly
+    var startDelay = FADE * 0.5;
+    setTimeout(function() {
+      try {
+        var ctx    = ensureCtx();
+        var master = getMaster(ctx);
+        // Ramp gain back up smoothly
+        var now = ctx.currentTime;
+        master.gain.cancelScheduledValues(now);
+        master.gain.setValueAtTime(0, now);
+        master.gain.linearRampToValueAtTime(getSoundVolume(), now + FADE / 1000);
+        var synth = SYNTHS[id];
+        if (synth) soundNodes = synth(ctx, master);
+      } catch(e) { console.warn('Sound error:', e); }
+    }, startDelay);
 
     item.classList.add('playing');
     item.querySelector('.icon-play').style.display  = 'none';
@@ -3847,86 +3894,148 @@
 
 
   /* ══════════════════════════════════════════════════════
-     RADIO PLAYER
+     RADIO PLAYER  — pre-warmed for instant playback
   ══════════════════════════════════════════════════════ */
   (function() {
-    let radioAudio    = null;
-    let radioPlaying  = null; // currently playing .radio-item element
+    var radioPlaying = null;   // currently playing .radio-item element
+    var radioAudio   = null;   // currently playing Audio object
+    var warmed       = {};     // url → Audio (pre-warmed, muted, paused)
+    var warmedStarted = false;
 
     function getRadioVolume() {
-      const v = document.getElementById('radio-volume');
+      var v = document.getElementById('radio-volume');
       return v ? parseInt(v.value, 10) / 100 : 0.7;
     }
 
     function showError(msg) {
-      const el = document.getElementById('radio-error');
+      var el = document.getElementById('radio-error');
       if (!el) return;
       el.textContent = msg;
       el.style.display = msg ? 'block' : 'none';
     }
 
+    function clearRadioUI(el) {
+      if (!el) return;
+      el.classList.remove('playing');
+      var playBtn = el.querySelector('.sound-play-btn');
+      if (playBtn) {
+        playBtn.querySelector('.icon-play').style.display  = '';
+        playBtn.querySelector('.icon-pause').style.display = 'none';
+      }
+    }
+
     function stopRadio(restoreUI) {
-      if (radioAudio) {
-        radioAudio.pause();
-        radioAudio.src = '';
-        radioAudio = null;
-      }
-      if (radioPlaying) {
-        radioPlaying.classList.remove('playing');
-        const playBtn = radioPlaying.querySelector('.sound-play-btn');
-        if (playBtn) {
-          playBtn.querySelector('.icon-play').style.display  = '';
-          playBtn.querySelector('.icon-pause').style.display = 'none';
-        }
-        radioPlaying = null;
-      }
+      if (radioAudio) { try { radioAudio.pause(); } catch(e) {} }
+      radioAudio = null;
+      if (restoreUI) clearRadioUI(radioPlaying);
+      radioPlaying = null;
       showError('');
+    }
+    window._stopRadio = stopRadio; // expose for ambient sound player
+
+    /* Pre-warm: create muted Audio for every station, start loading.
+       We do NOT call play() — that needs a user gesture.
+       But setting .src causes the browser to open the TCP connection
+       and fill a small buffer, so when the user clicks it's near-instant. */
+    function warmAll() {
+      if (warmedStarted) return;
+      warmedStarted = true;
+      var items = document.querySelectorAll('.radio-item[data-url]');
+      items.forEach(function(item) {
+        var url = item.dataset.url;
+        if (!url || warmed[url]) return;
+        var a = new Audio();
+        a.volume  = 0;
+        a.preload = 'auto';   // actively buffer
+        a.src     = url;
+        // Don't call play() — just let it buffer silently
+        warmed[url] = a;
+      });
     }
 
     function playRadio(item) {
-      const url   = item.dataset.url;
-      const title = item.dataset.title;
+      var url = item.dataset.url;
 
-      // If clicking the already-playing item, stop it
-      if (radioPlaying === item) { stopRadio(true); return; }
+      // Toggle off same station
+      if (radioPlaying === item) {
+        stopRadio(true);
+        // Re-warm this station so it's ready next time
+        var rw = new Audio();
+        rw.volume = 0; rw.preload = 'auto'; rw.src = url;
+        warmed[url] = rw;
+        return;
+      }
 
-      stopRadio(true);
       showError('');
 
-      radioAudio = new Audio();
-      radioAudio.crossOrigin = 'anonymous';
-      radioAudio.volume      = getRadioVolume();
-      radioAudio.src         = url;
-      radioAudio.play().catch(err => {
-        showError('Stream unavailable. Try another station.');
-        stopRadio(true);
-      });
-
-      radioAudio.addEventListener('error', () => {
-        showError('Stream unavailable. Try another station.');
-        stopRadio(true);
-      });
-
+      // Update UI immediately
+      clearRadioUI(radioPlaying);
       radioPlaying = item;
       item.classList.add('playing');
-      const playBtn = item.querySelector('.sound-play-btn');
+      var playBtn = item.querySelector('.sound-play-btn');
       if (playBtn) {
         playBtn.querySelector('.icon-play').style.display  = 'none';
         playBtn.querySelector('.icon-pause').style.display = '';
       }
+
+      // Stop ambient sound if playing
+      if (typeof stopSound === 'function') stopSound(0);
+
+      // Stop old stream instantly (no fade — speed matters)
+      if (radioAudio) { try { radioAudio.pause(); } catch(e) {} }
+      radioAudio = null;
+
+      // Always create a fresh Audio for live streams — reusing a paused
+      // live-stream object causes browsers to fail on replay
+      if (warmed[url]) {
+        try { warmed[url].pause(); } catch(e) {}
+        delete warmed[url];
+      }
+      var a = new Audio();
+      a.volume = getRadioVolume();
+      a.src = url;
+
+      a.play().then(function() {
+        radioAudio = a;
+      }).catch(function(err) {
+        showError('Stream unavailable. Try another station.');
+        clearRadioUI(item);
+        if (radioPlaying === item) { radioPlaying = null; radioAudio = null; }
+      });
+
+      a.addEventListener('error', function() {
+        if (radioPlaying === item) {
+          showError('Stream unavailable. Try another station.');
+          stopRadio(true);
+        }
+      });
     }
 
+    // Radio tab click → warm all streams immediately (user gesture context)
+    document.querySelectorAll('.modal-tab[data-tab="radio"]').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        // Small delay so tab content is visible first
+        setTimeout(warmAll, 300);
+      });
+    });
+
+    // Also warm on first interaction anywhere (covers cases where tab is already open)
+    document.addEventListener('click', function onFirstClick() {
+      warmAll();
+      document.removeEventListener('click', onFirstClick);
+    }, { once: true });
+
     // Radio list click
-    const radioList = document.getElementById('radio-list');
+    var radioList = document.getElementById('radio-list');
     if (radioList) {
-      radioList.addEventListener('click', e => {
-        const item = e.target.closest('.radio-item');
+      radioList.addEventListener('click', function(e) {
+        var item = e.target.closest('.radio-item');
         if (item) playRadio(item);
       });
     }
 
     // Volume slider
-    const volSlider = document.getElementById('radio-volume');
+    var volSlider = document.getElementById('radio-volume');
     if (volSlider) {
       volSlider.addEventListener('input', function() {
         if (radioAudio) radioAudio.volume = this.value / 100;
