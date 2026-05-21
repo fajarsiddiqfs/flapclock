@@ -4182,15 +4182,14 @@
         g2.appendChild(t);
       }());
 
-      /* 3. "Full Screen" — label sits left of icon, arrow curves down-right to icon
-            Matches screenshot: text to left, arrow sweeps toward bottom-right icon */
+      /* 3. "Full Screen" — text sits ABOVE, arrow curves down-right to icon */
       drawHint(
         document.getElementById('hint-fullscreen'),
         fc.x, fc.y,
-        fc.x - 100, fc.y - 28,
+        fc.x - 85, fc.y - 70,
         'Full Screen',
-        'end',
-        0
+        'middle',
+        28
       );
 
     } else {
