@@ -4001,6 +4001,12 @@
       font-size: 22px;
     }
   }
+  /* iPhone landscape: viewport is short and wide */
+  @media (max-height: 480px) and (orientation: landscape) {
+    .sk-label {
+      font-size: 16px;
+    }
+  }
 </style>
 
 <!-- One SVG that covers the whole viewport; arrows drawn by JS -->
@@ -4056,8 +4062,9 @@
     var my = (sy+ey)/2 + nx*12;
 
     var isMobilePortrait = window.innerWidth <= 480 && window.innerHeight > window.innerWidth;
-    var strokeW = isMobilePortrait ? '1.5' : '2';
-    var headLen = isMobilePortrait ? 6 : 9;
+    var isMobileLandscape = window.innerHeight <= 480 && window.innerWidth > window.innerHeight;
+    var strokeW = (isMobilePortrait || isMobileLandscape) ? '1.5' : '2';
+    var headLen = (isMobilePortrait || isMobileLandscape) ? 6 : 9;
     var angle = Math.atan2(ey-my, ex-mx);
     var a1x = ex - headLen*Math.cos(angle-0.45);
     var a1y = ey - headLen*Math.sin(angle-0.45);
@@ -4113,7 +4120,7 @@
     var vw = window.innerWidth;
     var vh = window.innerHeight;
     var isMobPort = vw <= 480 && vh > vw;
-    /* iPhone landscape: wide but short (e.g. 667–932px wide, under 480px tall) */
+    /* iPhone landscape: wide but short (e.g. 667–932 wide, under 480 tall) */
     var isMobLand = vh <= 480 && vw > vh;
 
     if (isMobPort) {
@@ -4196,44 +4203,44 @@
 
     } else if (isMobLand) {
       /* ═══════════════════════════════════════════════════
-         iPhone LANDSCAPE — icons are in the same corners as
-         desktop but the viewport is small, so offsets are
-         tightened to match actual element positions.
+         iPhone LANDSCAPE — same corner positions as desktop
+         but with tighter offsets for the small viewport.
+         Font is 16px (via CSS), stroke/head scaled in drawHint.
       ══════════════════════════════════════════════════════ */
 
       /* 1. "Click Me!" — label above-right of AM/PM badge */
       drawHint(
         document.getElementById('hint-ampm'),
         ac.x, ac.y,
-        ac.x + 18, ac.y - 48,
+        ac.x + 14, ac.y - 38,
         'Click Me!',
         'start'
       );
 
-      /* 2. "Settings" — label to the left of gear, same row */
+      /* 2. "Settings" — label left of gear, same row */
       (function () {
         var g2  = document.getElementById('hint-settings');
         g2.innerHTML = '';
         var col = inkColor();
         var NS2 = 'http://www.w3.org/2000/svg';
 
-        var lx = sc.x - 120;
-        var ly = sc.y - 12;
+        var lx = sc.x - 90;
+        var ly = sc.y - 10;
 
-        var sx = lx + 72, sy = ly + 12;
-        var ex = sc.x - 14, ey = sc.y;
+        var sx = lx + 55, sy = ly + 10;
+        var ex = sc.x - 12, ey = sc.y;
         var cx = (sx + ex) / 2;
-        var cy = (sy + ey) / 2 - 8;
+        var cy = (sy + ey) / 2 - 6;
 
         var p = document.createElementNS(NS2, 'path');
         p.setAttribute('d', 'M'+sx+' '+sy+' Q'+cx+' '+cy+' '+ex+' '+ey);
         p.setAttribute('fill', 'none');
         p.setAttribute('stroke', col);
-        p.setAttribute('stroke-width', '2');
+        p.setAttribute('stroke-width', '1.5');
         p.setAttribute('stroke-linecap', 'round');
         g2.appendChild(p);
 
-        var headLen = 8;
+        var headLen = 6;
         var ang = Math.atan2(ey - cy, ex - cx);
         [ang - 0.45, ang + 0.45].forEach(function (a) {
           var ln = document.createElementNS(NS2, 'line');
@@ -4241,14 +4248,14 @@
           ln.setAttribute('x2', ex - headLen * Math.cos(a));
           ln.setAttribute('y2', ey - headLen * Math.sin(a));
           ln.setAttribute('stroke', col);
-          ln.setAttribute('stroke-width', '2');
+          ln.setAttribute('stroke-width', '1.5');
           ln.setAttribute('stroke-linecap', 'round');
           g2.appendChild(ln);
         });
 
         var t = document.createElementNS(NS2, 'text');
         t.setAttribute('x', lx);
-        t.setAttribute('y', ly + 18);
+        t.setAttribute('y', ly + 14);
         t.setAttribute('text-anchor', 'start');
         t.setAttribute('class', 'sk-label');
         t.setAttribute('fill', col);
@@ -4256,14 +4263,14 @@
         g2.appendChild(t);
       }());
 
-      /* 3. "Full Screen" — label above-left of icon, arrow curves to icon */
+      /* 3. "Full Screen" — label above-left of icon */
       drawHint(
         document.getElementById('hint-fullscreen'),
         fc.x, fc.y,
-        fc.x - 100, fc.y - 55,
+        fc.x - 80, fc.y - 45,
         'Full Screen',
         'middle',
-        22
+        18
       );
 
     } else {
@@ -4346,7 +4353,7 @@
   /* Run on load + resize */
   window.addEventListener('load', positionAll);
   window.addEventListener('resize', positionAll);
-  /* Reposition on iOS orientation change — delay so viewport dims have settled */
+  /* Reposition on iOS rotation — wait for viewport to settle */
   window.addEventListener('orientationchange', function () { setTimeout(positionAll, 250); });
   /* Also run after a short tick to let layout settle */
   setTimeout(positionAll, 150);
