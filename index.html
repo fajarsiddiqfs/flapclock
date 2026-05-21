@@ -821,6 +821,39 @@
       .modal-divider {
         margin: 0 0 8px;
       }
+
+      /* ── Landscape: hide about, share & footer to reclaim space ── */
+      .modal-about,
+      .modal-share-standalone,
+      .modal-divider {
+        display: none !important;
+      }
+      .modal-footer {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255,255,255,0.07);
+        gap: 10px;
+        font-size: 8px;
+        flex-shrink: 0;
+      }
+      body.light-mode .modal-footer {
+        border-top-color: rgba(0,0,0,0.08);
+      }
+      .mf-left, .mf-center, .mf-right {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 33%;
+      }
+      .tab-content-wrap {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
     }
     body.light-mode .modal {
       background: #f7f7f7;
