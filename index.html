@@ -4027,16 +4027,56 @@
       'end'
     );
 
-    /* 2. Settings: label below-left of gear, arrow up-right to gear */
-    var settLX = Math.max(sc.x - 130, 12);
-    var settLY = sc.y + 60;
-    drawHint(
-      document.getElementById('hint-settings'),
-      sc.x, sc.y,
-      settLX, settLY,
-      'Settings',
-      'start'
-    );
+    /* 2. Settings: gentle curve bottom-left to right pointing at gear (like screenshot) */
+    (function () {
+      var g2  = document.getElementById('hint-settings');
+      g2.innerHTML = '';
+      var col = inkColor();
+      var NS2 = 'http://www.w3.org/2000/svg';
+
+      /* Text sits below-left of gear */
+      var lx = Math.max(sc.x - 60, 12);
+      var ly = sc.y + 35;
+
+      /* Tail starts at bottom-left (near label), tip ends just left of gear */
+      var sx = lx,        sy = ly - 10;
+      var ex = sc.x - 14, ey = sc.y;
+
+      /* Control point: gentle upward bow in the middle */
+      var cx = sx + (ex - sx) * 0.5;
+      var cy = ((sy + ey) / 2) - 12;
+
+      var p = document.createElementNS(NS2, 'path');
+      p.setAttribute('d', 'M'+sx+' '+sy+' Q'+cx+' '+cy+' '+ex+' '+ey);
+      p.setAttribute('fill', 'none');
+      p.setAttribute('stroke', col);
+      p.setAttribute('stroke-width', '2');
+      p.setAttribute('stroke-linecap', 'round');
+      g2.appendChild(p);
+
+      /* Arrowhead — angle based on end of curve */
+      var headLen = 9;
+      /* tangent at end of quadratic = direction from control point to end point */
+      var ang = Math.atan2(ey - cy, ex - cx);
+      [ang - 0.45, ang + 0.45].forEach(function (a) {
+        var ln = document.createElementNS(NS2, 'line');
+        ln.setAttribute('x1', ex); ln.setAttribute('y1', ey);
+        ln.setAttribute('x2', ex - headLen * Math.cos(a));
+        ln.setAttribute('y2', ey - headLen * Math.sin(a));
+        ln.setAttribute('stroke', col); ln.setAttribute('stroke-width', '2');
+        ln.setAttribute('stroke-linecap', 'round');
+        g2.appendChild(ln);
+      });
+
+      /* Label */
+      var t = document.createElementNS(NS2, 'text');
+      t.setAttribute('x', lx - 50); t.setAttribute('y', ly + 20);
+      t.setAttribute('text-anchor', 'start');
+      t.setAttribute('class', 'sk-label');
+      t.setAttribute('fill', col);
+      t.textContent = 'Settings';
+      g2.appendChild(t);
+    }());
 
     /* 3. Fullscreen: label to the left + above the icon (arrow points down-right to icon) */
     var fsLX = Math.max(fc.x - 130, 10);
