@@ -3883,9 +3883,11 @@
     pointer-events: auto;
     opacity: 1;
     transition: opacity 0.7s ease;
+    will-change: opacity;
+    isolation: isolate;
   }
   .sk-hint.dimmed {
-    opacity: 0;
+    opacity: 0 !important;
     transition: opacity 1.3s ease;
   }
 
@@ -3897,6 +3899,9 @@
   .sk-hint:hover {
     opacity: 1 !important;
     transition: opacity 0.2s ease !important;
+  }
+  .sk-hint.dimmed * {
+    pointer-events: none;
   }
 
   /* Hand-written label — colour set dynamically by JS per light/dark mode */
@@ -4100,6 +4105,7 @@
   setTimeout(function () {
     document.querySelectorAll('.sk-hint').forEach(function (h) {
       h.classList.add('dimmed');
+      h.style.opacity = '0';
     });
   }, 5000);
 
