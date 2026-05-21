@@ -3951,6 +3951,12 @@
     font-size: 28px;
     pointer-events: none;
   }
+
+  @media (max-width: 480px) and (orientation: portrait) {
+    .sk-label {
+      font-size: 17px;
+    }
+  }
 </style>
 
 <!-- One SVG that covers the whole viewport; arrows drawn by JS -->
@@ -4005,7 +4011,9 @@
     var mx = (sx+ex)/2 - ny*12;
     var my = (sy+ey)/2 + nx*12;
 
-    var headLen = 9;
+    var isMobilePortrait = window.innerWidth <= 480 && window.innerHeight > window.innerWidth;
+    var strokeW = isMobilePortrait ? '1.5' : '2';
+    var headLen = isMobilePortrait ? 6 : 9;
     var angle = Math.atan2(ey-my, ex-mx);
     var a1x = ex - headLen*Math.cos(angle-0.45);
     var a1y = ey - headLen*Math.sin(angle-0.45);
@@ -4018,21 +4026,21 @@
     path.setAttribute('d', 'M'+sx+' '+sy+' Q'+mx+' '+my+' '+ex+' '+ey);
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', color);
-    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-width', strokeW);
     path.setAttribute('stroke-linecap', 'round');
     g.appendChild(path);
 
     var w1 = document.createElementNS(NS, 'line');
     w1.setAttribute('x1', ex); w1.setAttribute('y1', ey);
     w1.setAttribute('x2', a1x); w1.setAttribute('y2', a1y);
-    w1.setAttribute('stroke', color); w1.setAttribute('stroke-width', '2');
+    w1.setAttribute('stroke', color); w1.setAttribute('stroke-width', strokeW);
     w1.setAttribute('stroke-linecap', 'round');
     g.appendChild(w1);
 
     var w2 = document.createElementNS(NS, 'line');
     w2.setAttribute('x1', ex); w2.setAttribute('y1', ey);
     w2.setAttribute('x2', a2x); w2.setAttribute('y2', a2y);
-    w2.setAttribute('stroke', color); w2.setAttribute('stroke-width', '2');
+    w2.setAttribute('stroke', color); w2.setAttribute('stroke-width', strokeW);
     w2.setAttribute('stroke-linecap', 'round');
     g.appendChild(w2);
 
@@ -4060,11 +4068,12 @@
 
     var vw = window.innerWidth;
     var vh = window.innerHeight;
+    var isMobPort = vw <= 480 && vh > vw;
 
     /* 1. AM/PM: label to the right + above */
     var ampmShift = 20;
-    var ampmLX = Math.min(ac.x + 140 + ampmShift, vw - 8);
-    var ampmLY = Math.max(ac.y - 40, 14);
+    var ampmLX = Math.min(ac.x + (isMobPort ? 80 : 140) + ampmShift, vw - 8);
+    var ampmLY = Math.max(ac.y - (isMobPort ? 24 : 40), 14);
     drawHint(
       document.getElementById('hint-ampm'),
       ac.x + ampmShift, ac.y,
@@ -4081,8 +4090,8 @@
       var NS2 = 'http://www.w3.org/2000/svg';
 
       /* Text sits below-left of gear */
-      var lx = Math.max(sc.x - 60, 12);
-      var ly = sc.y + 35;
+      var lx = Math.max(sc.x - (isMobPort ? 30 : 60), 12);
+      var ly = sc.y + (isMobPort ? 22 : 35);
 
       /* Tail starts at bottom-left (near label), tip ends just left of gear */
       var sx = lx,        sy = ly - 10;
@@ -4096,12 +4105,12 @@
       p.setAttribute('d', 'M'+sx+' '+sy+' Q'+cx+' '+cy+' '+ex+' '+ey);
       p.setAttribute('fill', 'none');
       p.setAttribute('stroke', col);
-      p.setAttribute('stroke-width', '2');
+      p.setAttribute('stroke-width', isMobPort ? '1.5' : '2');
       p.setAttribute('stroke-linecap', 'round');
       g2.appendChild(p);
 
       /* Arrowhead — angle based on end of curve */
-      var headLen = 9;
+      var headLen = isMobPort ? 6 : 9;
       /* tangent at end of quadratic = direction from control point to end point */
       var ang = Math.atan2(ey - cy, ex - cx);
       [ang - 0.45, ang + 0.45].forEach(function (a) {
@@ -4109,14 +4118,14 @@
         ln.setAttribute('x1', ex); ln.setAttribute('y1', ey);
         ln.setAttribute('x2', ex - headLen * Math.cos(a));
         ln.setAttribute('y2', ey - headLen * Math.sin(a));
-        ln.setAttribute('stroke', col); ln.setAttribute('stroke-width', '2');
+        ln.setAttribute('stroke', col); ln.setAttribute('stroke-width', isMobPort ? '1.5' : '2');
         ln.setAttribute('stroke-linecap', 'round');
         g2.appendChild(ln);
       });
 
       /* Label */
       var t = document.createElementNS(NS2, 'text');
-      t.setAttribute('x', lx - 50); t.setAttribute('y', ly + 20);
+      t.setAttribute('x', lx - (isMobPort ? 20 : 50)); t.setAttribute('y', ly + (isMobPort ? 12 : 20));
       t.setAttribute('text-anchor', 'start');
       t.setAttribute('class', 'sk-label');
       t.setAttribute('fill', col);
@@ -4125,8 +4134,8 @@
     }());
 
     /* 3. Fullscreen: label to the left + above the icon (arrow points down-right to icon) */
-    var fsLX = Math.max(fc.x - 165, 10);
-    var fsLY = fc.y - 60;
+    var fsLX = Math.max(fc.x - (isMobPort ? 90 : 165), 10);
+    var fsLY = fc.y - (isMobPort ? 36 : 60);
     var fsDx = fc.x - fsLX, fsDy = fc.y - fsLY;
     var fsDist = Math.sqrt(fsDx*fsDx + fsDy*fsDy);
     var fsShortenBy = 18;
