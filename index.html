@@ -4001,6 +4001,12 @@
       font-size: 22px;
     }
   }
+  /* iPhone landscape: short viewport */
+  @media (max-height: 480px) and (orientation: landscape) {
+    .sk-label {
+      font-size: 18px;
+    }
+  }
 </style>
 
 <!-- One SVG that covers the whole viewport; arrows drawn by JS -->
@@ -4055,9 +4061,10 @@
     var mx = (sx+ex)/2 - ny*12;
     var my = (sy+ey)/2 + nx*12;
 
-    var isMobilePortrait = window.innerWidth <= 480 && window.innerHeight > window.innerWidth;
-    var strokeW = isMobilePortrait ? '1.5' : '2';
-    var headLen = isMobilePortrait ? 6 : 9;
+    var isMobilePortrait  = window.innerWidth <= 480 && window.innerHeight > window.innerWidth;
+    var isMobileLandscape = window.innerHeight <= 480 && window.innerWidth > window.innerHeight;
+    var strokeW = (isMobilePortrait || isMobileLandscape) ? '1.5' : '2';
+    var headLen = (isMobilePortrait || isMobileLandscape) ? 6 : 9;
     var angle = Math.atan2(ey-my, ex-mx);
     var a1x = ex - headLen*Math.cos(angle-0.45);
     var a1y = ey - headLen*Math.sin(angle-0.45);
