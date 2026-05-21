@@ -4135,9 +4135,9 @@
       drawHint(
         document.getElementById('hint-ampm'),
         ac.x, ac.y,
-        ac.x + 28, ac.y - 45,
+        ac.x - 10, ac.y - 45,
         'Click Me!',
-        'start'
+        'end'
       );
 
       /* 2. "Settings" — label sits to the left of gear, same vertical row
@@ -4149,7 +4149,7 @@
         var NS2 = 'http://www.w3.org/2000/svg';
 
         /* label left-aligned, vertically centred with gear */
-        var lx = sc.x - 110;
+        var lx = sc.x - 118;
         var ly = sc.y - 12;
 
         /* tail: right edge of text area → tip: left edge of gear */
@@ -4211,9 +4211,9 @@
       drawHint(
         document.getElementById('hint-ampm'),
         ac.x, ac.y,
-        ac.x + 28, ac.y - 45,
+        ac.x - 10, ac.y - 45,
         'Click Me!',
-        'start'
+        'end'
       );
 
       /* 2. "Settings" — label left of gear, arrow right to gear */
@@ -4262,15 +4262,58 @@
         g2.appendChild(t);
       }());
 
-      /* 3. "Full Screen" — label above-left, arrow curves to icon */
-      drawHint(
-        document.getElementById('hint-fullscreen'),
-        fc.x, fc.y,
-        fc.x - 75, fc.y - 55,
-        'Full Screen',
-        'middle',
-        28
-      );
+      /* 3. "Full Screen" — arrow stays fixed, only text shifted right */
+      (function () {
+        var g3  = document.getElementById('hint-fullscreen');
+        g3.innerHTML = '';
+        var col = inkColor();
+        var NS3 = 'http://www.w3.org/2000/svg';
+
+        /* arrow: same as before, tail from label area, tip to icon */
+        var arrowLx = fc.x - 75, arrowLy = fc.y - 55;
+        var dx = fc.x - arrowLx, dy = fc.y - arrowLy;
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        var nx = dx/dist, ny = dy/dist;
+        var tailGap = 40;
+        var sx = arrowLx + nx * tailGap;
+        var sy = arrowLy + 28;
+        var tipGap = 42;
+        var ex = fc.x - nx * tipGap;
+        var ey = fc.y - ny * tipGap;
+        var mx = (sx+ex)/2 - ny*12;
+        var my = (sy+ey)/2 + nx*12;
+
+        var p = document.createElementNS(NS3, 'path');
+        p.setAttribute('d', 'M'+sx+' '+sy+' Q'+mx+' '+my+' '+ex+' '+ey);
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', col);
+        p.setAttribute('stroke-width', '1.5');
+        p.setAttribute('stroke-linecap', 'round');
+        g3.appendChild(p);
+
+        var headLen = 6;
+        var ang = Math.atan2(ey - my, ex - mx);
+        [ang - 0.45, ang + 0.45].forEach(function (a) {
+          var ln = document.createElementNS(NS3, 'line');
+          ln.setAttribute('x1', ex); ln.setAttribute('y1', ey);
+          ln.setAttribute('x2', ex - headLen * Math.cos(a));
+          ln.setAttribute('y2', ey - headLen * Math.sin(a));
+          ln.setAttribute('stroke', col);
+          ln.setAttribute('stroke-width', '1.5');
+          ln.setAttribute('stroke-linecap', 'round');
+          g3.appendChild(ln);
+        });
+
+        /* text shifted further right independently */
+        var t = document.createElementNS(NS3, 'text');
+        t.setAttribute('x', fc.x - 55);
+        t.setAttribute('y', fc.y - 55);
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('class', 'sk-label');
+        t.setAttribute('fill', col);
+        t.textContent = 'Full Screen';
+        g3.appendChild(t);
+      }());
 
     } else {
       /* ═══════════════════════════════════════════════════
