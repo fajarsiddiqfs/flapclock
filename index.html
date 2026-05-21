@@ -3940,7 +3940,7 @@
     return document.body.classList.contains('light-mode') ? '#111111' : '#ffffff';
   }
 
-  function drawHint(g, tx, ty, lx, ly, labelText, anchor) {
+  function drawHint(g, tx, ty, lx, ly, labelText, anchor, tailOffsetY) {
     g.innerHTML = '';
     var color = inkColor();
 
@@ -3950,7 +3950,8 @@
 
     var tailGap = 40;
     var sx = lx + nx * tailGap;
-    var sy = ly + ny * tailGap;
+    /* tailOffsetY lets us pin the tail above or below the label independently */
+    var sy = (tailOffsetY !== undefined) ? (ly + tailOffsetY) : (ly + ny * tailGap);
 
     var tipGap = 42;
     var ex = tx - nx * tipGap;
@@ -4026,9 +4027,9 @@
       'end'
     );
 
-    /* 2. Settings: label below-left of gear, arrow points up-right to gear */
-    var settLX = Math.max(sc.x - 130, 10);
-    var settLY = sc.y + 40;
+    /* 2. Settings: label below-left of gear, arrow up-right to gear */
+    var settLX = Math.max(sc.x - 130, 12);
+    var settLY = sc.y + 60;
     drawHint(
       document.getElementById('hint-settings'),
       sc.x, sc.y,
