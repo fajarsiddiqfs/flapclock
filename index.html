@@ -3858,5 +3858,236 @@
   })();
 
 </script>
+
+<!-- ══════════════════════════════════════════════════════
+     SKETCH ANNOTATIONS OVERLAY
+     JS-positioned arrows so they hit the exact icon centres
+     on any screen size. Text sits away from icon, short arrow.
+══════════════════════════════════════════════════════ -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap');
+
+  /* Full-screen canvas — pointer-events off so nothing is blocked */
+  #sketch-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: visible;
+  }
+
+  /* Individual hint groups — pointer-events on for hover */
+  .sk-hint {
+    pointer-events: auto;
+    opacity: 1;
+    transition: opacity 0.7s ease;
+  }
+  .sk-hint.dimmed {
+    opacity: 0.08;
+    transition: opacity 1.3s ease;
+  }
+  .sk-hint:hover {
+    opacity: 1 !important;
+    transition: opacity 0.2s ease !important;
+  }
+
+  /* Hand-written label */
+  .sk-label {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 22px;
+    fill: #ffffff;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
+    pointer-events: none;
+  }
+</style>
+
+<!-- One SVG that covers the whole viewport; arrows drawn by JS -->
+<svg id="sketch-canvas" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="sk-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="rgba(0,0,0,0.6)"/>
+    </filter>
+  </defs>
+
+  <!-- Hint 1: AM/PM → "Click Me!" -->
+  <g class="sk-hint" id="hint-ampm"></g>
+
+  <!-- Hint 2: Settings gear → "Settings" -->
+  <g class="sk-hint" id="hint-settings"></g>
+
+  <!-- Hint 3: Fullscreen → "Full Screen" -->
+  <g class="sk-hint" id="hint-fullscreen"></g>
+</svg>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── helpers ─────────────────────────────────────────── */
+  function centre(el) {
+    var r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  /* Draw a short wobbly arrow + label into an SVG <g>.
+     tx,ty  = arrowhead tip (icon centre)
+     lx,ly  = label anchor
+     anchor = 'start'|'middle'|'end'  (SVG text-anchor)        */
+  function drawHint(g, tx, ty, lx, ly, labelText, anchor) {
+    g.innerHTML = '';
+
+    /* Arrow tail starts near label, ends well away from icon centre */
+    var dx = tx - lx, dy = ty - ly;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    var nx = dx/dist, ny = dy/dist;
+
+    /* tail point: start 22px away from label anchor */
+    var tailGap = 22;
+    var sx = lx + nx * tailGap;
+    var sy = ly + ny * tailGap + 14; /* +14 nudges below text baseline */
+
+    /* tip: stop 42px from icon centre — well clear of icon */
+    var tipGap = 42;
+    var ex = tx - nx * tipGap;
+    var ey = ty - ny * tipGap;
+
+    /* slight curve via a control point offset perpendicularly */
+    var mx = (sx+ex)/2 - ny*12;
+    var my = (sy+ey)/2 + nx*12;
+
+    /* arrowhead wings */
+    var headLen = 9;
+    var angle = Math.atan2(ey-my, ex-mx);
+    var a1x = ex - headLen*Math.cos(angle-0.45);
+    var a1y = ey - headLen*Math.sin(angle-0.45);
+    var a2x = ex - headLen*Math.cos(angle+0.45);
+    var a2y = ey - headLen*Math.sin(angle+0.45);
+
+    var NS = 'http://www.w3.org/2000/svg';
+
+    /* shaft */
+    var path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', 'M'+sx+' '+sy+' Q'+mx+' '+my+' '+ex+' '+ey);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'white');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('filter', 'url(#sk-shadow)');
+    g.appendChild(path);
+
+    /* head wing 1 */
+    var w1 = document.createElementNS(NS, 'line');
+    w1.setAttribute('x1', ex); w1.setAttribute('y1', ey);
+    w1.setAttribute('x2', a1x); w1.setAttribute('y2', a1y);
+    w1.setAttribute('stroke', 'white'); w1.setAttribute('stroke-width', '2');
+    w1.setAttribute('stroke-linecap', 'round');
+    w1.setAttribute('filter', 'url(#sk-shadow)');
+    g.appendChild(w1);
+
+    /* head wing 2 */
+    var w2 = document.createElementNS(NS, 'line');
+    w2.setAttribute('x1', ex); w2.setAttribute('y1', ey);
+    w2.setAttribute('x2', a2x); w2.setAttribute('y2', a2y);
+    w2.setAttribute('stroke', 'white'); w2.setAttribute('stroke-width', '2');
+    w2.setAttribute('stroke-linecap', 'round');
+    w2.setAttribute('filter', 'url(#sk-shadow)');
+    g.appendChild(w2);
+
+    /* label */
+    var txt = document.createElementNS(NS, 'text');
+    txt.setAttribute('x', lx);
+    txt.setAttribute('y', ly);
+    txt.setAttribute('text-anchor', anchor || 'middle');
+    txt.setAttribute('class', 'sk-label');
+    txt.setAttribute('filter', 'url(#sk-shadow)');
+    txt.textContent = labelText;
+    g.appendChild(txt);
+  }
+
+  /* ── position all hints ──────────────────────────────── */
+  function positionAll() {
+    var ampmEl     = document.getElementById('ampm-badge');
+    var settingsEl = document.getElementById('settings-btn');
+    var fsEl       = document.getElementById('fs-btn');
+
+    if (!ampmEl || !settingsEl || !fsEl) return;
+
+    var ac = centre(ampmEl);
+    var sc = centre(settingsEl);
+    var fc = centre(fsEl);
+
+    var vw = window.innerWidth;
+
+    /* 1. AM/PM: label well to the right + above the badge */
+    var ampmLX = Math.min(ac.x + 155, vw - 10);
+    var ampmLY = ac.y - 40;
+    drawHint(
+      document.getElementById('hint-ampm'),
+      ac.x, ac.y,
+      ampmLX, ampmLY,
+      'Click Me!',
+      'start'
+    );
+
+    /* 2. Settings: label further below-left of gear */
+    var settLX = Math.max(sc.x - 110, 10);
+    var settLY = sc.y + 72;
+    drawHint(
+      document.getElementById('hint-settings'),
+      sc.x, sc.y,
+      settLX, settLY,
+      'Settings',
+      'end'
+    );
+
+    /* 3. Fullscreen: label further above-left of icon */
+    var fsLX = Math.max(fc.x - 110, 10);
+    var fsLY = fc.y - 72;
+    drawHint(
+      document.getElementById('hint-fullscreen'),
+      fc.x, fc.y,
+      fsLX, fsLY,
+      'Full Screen',
+      'end'
+    );
+  }
+
+  /* Run on load + resize */
+  window.addEventListener('load', positionAll);
+  window.addEventListener('resize', positionAll);
+  /* Also run after a short tick to let layout settle */
+  setTimeout(positionAll, 150);
+
+  /* ── Dim after 5 s ─────────────────────────────────── */
+  setTimeout(function () {
+    document.querySelectorAll('.sk-hint').forEach(function (h) {
+      h.classList.add('dimmed');
+    });
+  }, 5000);
+
+  /* ── Hide annotations when fullscreen is active ────── */
+  var canvas = document.getElementById('sketch-canvas');
+
+  function onFullscreenChange() {
+    var isFs = !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+    canvas.style.display = isFs ? 'none' : '';
+  }
+
+  document.addEventListener('fullscreenchange',       onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+  document.addEventListener('mozfullscreenchange',    onFullscreenChange);
+  document.addEventListener('MSFullscreenChange',     onFullscreenChange);
+
+})();
+</script>
+
 </body>
 </html>
