@@ -4352,13 +4352,13 @@
         var col = inkColor();
         var NS1 = 'http://www.w3.org/2000/svg';
 
-        /* Label position: gap to the right of arrow tail */
-        var lx = ac.x + 74;
+        /* Label position: closer to arrow tail */
+        var lx = ac.x + 68;
         var ly = Math.max(ac.y - 18, 16);
 
-        /* Arrow: shorter tail, closer to badge */
-        var sx = ac.x + 48, sy = ly - 4;   /* tail — short, near label left edge */
-        var ex = ac.x + 18, ey = ac.y + 2; /* tip  — on the badge */
+        /* Arrow: shifted right, tail close to label */
+        var sx = ac.x + 58, sy = ly - 4;   /* tail — right, near label left edge */
+        var ex = ac.x + 26, ey = ac.y + 2; /* tip  — on the badge */
         /* gentle leftward curve */
         var cx = (sx + ex) / 2 - 6;
         var cy = (sy + ey) / 2 - 8;
