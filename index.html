@@ -2254,11 +2254,11 @@
           </div>
         </div>
 
-        <div class="sound-item" data-sound="rain" data-title="Night Crickets">
-          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="5" r="3"/><path d="M15.5 3.5l1 1"/></svg></div>
+        <div class="sound-item" data-sound="rain" data-title="Forest Rain">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 19v2M12 17v4M16 19v2M4 14.5A4 4 0 0 1 6 7h1.5A6 6 0 1 1 19 12.5"/><path d="M9 17l1-2M13 15l1-2"/></svg></div>
           <div class="sound-info">
-            <div class="sound-name">Night Crickets</div>
-            <div class="sound-desc">Soft cricket chorus with cicada swells</div>
+            <div class="sound-name">Forest Rain</div>
+            <div class="sound-desc">Rain pattering on forest leaves and branches</div>
           </div>
           <div class="sound-ctrl">
             <div class="sound-play-btn">
@@ -2282,11 +2282,11 @@
           </div>
         </div>
 
-        <div class="sound-item" data-sound="forest" data-title="Night Frogs">
-          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5 0 9-3.582 9-8 0-1.06-.47-2.046-1.32-2.877C18.655 10.2 17.88 9 17 9c-1 0-1.5.5-2 1s-1 1-3 1-2.5-.5-3-1-1-1-2-1c-.88 0-1.655 1.2-2.68 2.123C3.47 11.954 3 12.94 3 14c0 4.418 4 8 9 8z"/><path d="M8 9V7a2 2 0 0 1 4 0v2"/><path d="M16 9V7a2 2 0 0 0-4 0v2"/><circle cx="9" cy="13" r="1" fill="currentColor"/><circle cx="15" cy="13" r="1" fill="currentColor"/></svg></div>
+        <div class="sound-item" data-sound="forest" data-title="Heavy Downpour">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.5A4 4 0 0 1 6 7h1.5A6 6 0 1 1 19 12.5"/><path d="M7 19v2M11 17v2M15 19v2M19 17v2"/></svg></div>
           <div class="sound-info">
-            <div class="sound-name">Night Frogs</div>
-            <div class="sound-desc">Frogs croaking with soft insect trills</div>
+            <div class="sound-name">Heavy Downpour</div>
+            <div class="sound-desc">Intense rain with puddle splashes and rumbles</div>
           </div>
           <div class="sound-ctrl">
             <div class="sound-play-btn">
@@ -3713,39 +3713,94 @@
   const SYNTHS = {
 
     rain(ctx, dest) {
-      // Night Crickets — gentle filtered hum, barely audible
+      // Forest Rain — rain pattering on leaves, branches, soft earth
       const alive = { on: true };
       const nodes = [];
+      const tids  = [];
 
-      // Soft continuous cricket hum: narrow bandpass noise, very low
-      const mkLayer = (freq, q, vol) => {
-        const n  = makeNoise(ctx, 4);
-        const bp = biquad(ctx, 'bandpass', freq, q);
-        const g  = gain(ctx, vol);
-        // Slow breath LFO
-        const lfo  = ctx.createOscillator();
-        const lfoG = ctx.createGain();
-        lfo.type = 'sine'; lfo.frequency.value = 0.08 + Math.random() * 0.06;
-        lfoG.gain.value = vol * 0.3;
-        lfo.connect(lfoG); lfoG.connect(g.gain);
-        n.connect(bp); bp.connect(g); g.connect(dest);
-        n.start(); lfo.start();
-        return [n, bp, g, lfo, lfoG];
+      function safeTimeout(fn, ms) {
+        if (!alive.on) return;
+        const tid = setTimeout(() => { if (alive.on) { try { fn(); } catch(e) {} } }, ms);
+        tids.push(tid);
+        nodes.push({ _tid: tid, disconnect() { clearTimeout(this._tid); } });
+      }
+
+      // Continuous leaf-patter bed: mid-high bandpassed noise
+      const leafBed   = makeNoise(ctx, 4);
+      const leafLpf   = biquad(ctx, 'lowpass',  4000);
+      const leafHpf   = biquad(ctx, 'highpass', 1200);
+      const gLeaf     = gain(ctx, 0.055);
+      const lfoLeaf   = ctx.createOscillator();
+      const lfoLeafG  = ctx.createGain();
+      lfoLeaf.type = 'sine'; lfoLeaf.frequency.value = 0.07;
+      lfoLeafG.gain.value = 0.014;
+      lfoLeaf.connect(lfoLeafG); lfoLeafG.connect(gLeaf.gain);
+      leafBed.connect(leafLpf); leafLpf.connect(leafHpf); leafHpf.connect(gLeaf); gLeaf.connect(dest);
+      leafBed.start(); lfoLeaf.start();
+      nodes.push(leafBed, leafLpf, leafHpf, gLeaf, lfoLeaf, lfoLeafG);
+
+      // Low earth/ground layer for body
+      const earthBed = makeNoise(ctx, 4);
+      const earthLpf = biquad(ctx, 'lowpass', 500);
+      const gEarth   = gain(ctx, 0.032);
+      earthBed.connect(earthLpf); earthLpf.connect(gEarth); gEarth.connect(dest);
+      earthBed.start();
+      nodes.push(earthBed, earthLpf, gEarth);
+
+      // Individual raindrop taps on leaves — sharp plucks
+      const makeDrop = () => {
+        const now  = ctx.currentTime;
+        const freq = 900 + Math.random() * 2200;
+        const n    = makeNoise(ctx, 0.5);
+        const bpf  = biquad(ctx, 'bandpass', freq, 8 + Math.random() * 6);
+        const env  = ctx.createGain();
+        const vol  = 0.018 + Math.random() * 0.022;
+        env.gain.setValueAtTime(0.001, now);
+        env.gain.linearRampToValueAtTime(vol, now + 0.006);
+        env.gain.exponentialRampToValueAtTime(0.001, now + 0.055 + Math.random() * 0.04);
+        n.connect(bpf); bpf.connect(env); env.connect(dest);
+        n.start(now); n.stop(now + 0.12);
+        nodes.push(n, bpf, env);
       };
 
-      nodes.push(...mkLayer(3000, 12, 0.012));
-      nodes.push(...mkLayer(3300, 10, 0.009));
-      nodes.push(...mkLayer(2800, 14, 0.008));
+      // Heavier branch drip — low thud, spaced out
+      const makeBranchDrip = () => {
+        const now  = ctx.currentTime;
+        const n    = makeNoise(ctx, 0.5);
+        const bpf  = biquad(ctx, 'bandpass', 280 + Math.random() * 180, 3);
+        const env  = ctx.createGain();
+        env.gain.setValueAtTime(0.001, now);
+        env.gain.linearRampToValueAtTime(0.045 + Math.random() * 0.02, now + 0.012);
+        env.gain.exponentialRampToValueAtTime(0.001, now + 0.18 + Math.random() * 0.1);
+        n.connect(bpf); bpf.connect(env); env.connect(dest);
+        n.start(now); n.stop(now + 0.32);
+        nodes.push(n, bpf, env);
+      };
 
-      // Tiny bed noise — near-silence
-      const bed = makeNoise(ctx, 4);
-      const blp = biquad(ctx, 'lowpass', 280);
-      const gbg = gain(ctx, 0.010);
-      bed.connect(blp); blp.connect(gbg); gbg.connect(dest);
-      bed.start();
-      nodes.push(bed, blp, gbg);
+      // Fast leaf-drop scheduler (dense patter)
+      const scheduleDrop = () => {
+        const gap = 60 + Math.random() * 160;
+        safeTimeout(() => {
+          makeDrop();
+          if (Math.random() < 0.3) safeTimeout(makeDrop, 18 + Math.random() * 25);
+          scheduleDrop();
+        }, gap);
+      };
 
-      nodes.push({ _tid: null, disconnect() { alive.on = false; } });
+      // Slower branch drip scheduler
+      const scheduleBranchDrip = () => {
+        const gap = 900 + Math.random() * 2200;
+        safeTimeout(() => {
+          makeBranchDrip();
+          scheduleBranchDrip();
+        }, gap);
+      };
+
+      scheduleDrop();
+      scheduleBranchDrip();
+      safeTimeout(makeBranchDrip, 300);
+
+      nodes.push({ _tid: null, disconnect() { alive.on = false; tids.forEach(clearTimeout); } });
       return nodes;
     },
 
@@ -3795,74 +3850,96 @@
     },
 
     forest(ctx, dest) {
-      // Night Frogs — soft low croaks, sparse, with faint insect bed
+      // Heavy Downpour — intense rain, puddle splashes, low rumble
       const alive = { on: true };
       const nodes = [];
+      const tids  = [];
 
-      // Faint high insect hum bed
-      const bed = makeNoise(ctx, 4);
-      const blp = biquad(ctx, 'bandpass', 4800, 8);
-      const gbg = gain(ctx, 0.008);
-      const lfo  = ctx.createOscillator();
-      const lfoG = ctx.createGain();
-      lfo.type = 'sine'; lfo.frequency.value = 0.06;
-      lfoG.gain.value = 0.003;
-      lfo.connect(lfoG); lfoG.connect(gbg.gain);
-      bed.connect(blp); blp.connect(gbg); gbg.connect(dest);
-      bed.start(); lfo.start();
-      nodes.push(bed, blp, gbg, lfo, lfoG);
-
-      const makeFrog = () => {
+      function safeTimeout(fn, ms) {
         if (!alive.on) return;
-        try {
-          const now  = ctx.currentTime;
-          const freq = 200 + Math.random() * 40;
-          const osc  = ctx.createOscillator();
-          const lp   = biquad(ctx, 'lowpass', 600);
-          const g    = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now);
-          osc.frequency.linearRampToValueAtTime(freq * 0.85, now + 0.22);
-          g.gain.setValueAtTime(0.001, now);
-          g.gain.linearRampToValueAtTime(0.022, now + 0.030);
-          g.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
-          osc.connect(lp); lp.connect(g); g.connect(dest);
-          osc.start(now); osc.stop(now + 0.30);
-          nodes.push(osc, lp, g);
-          if (Math.random() < 0.35 && alive.on) {
-            const t2 = setTimeout(() => {
-              if (!alive.on) return;
-              try {
-                const n2  = ctx.currentTime;
-                const o2  = ctx.createOscillator();
-                const lp2 = biquad(ctx, 'lowpass', 600);
-                const g2  = ctx.createGain();
-                o2.type = 'sine'; o2.frequency.value = freq * 0.87;
-                g2.gain.setValueAtTime(0.001, n2);
-                g2.gain.linearRampToValueAtTime(0.015, n2 + 0.030);
-                g2.gain.exponentialRampToValueAtTime(0.001, n2 + 0.22);
-                o2.connect(lp2); lp2.connect(g2); g2.connect(dest);
-                o2.start(n2); o2.stop(n2 + 0.26);
-                nodes.push(o2, lp2, g2);
-              } catch(e) {}
-            }, 320 + Math.random() * 140);
-            nodes.push({ _tid: t2, disconnect() { clearTimeout(t2); } });
-          }
-        } catch(e) {}
+        const tid = setTimeout(() => { if (alive.on) { try { fn(); } catch(e) {} } }, ms);
+        tids.push(tid);
+        nodes.push({ _tid: tid, disconnect() { clearTimeout(this._tid); } });
+      }
+
+      // Dense wide-band rain roar — the main body
+      const rainBed  = makeNoise(ctx, 4);
+      const rLpf     = biquad(ctx, 'lowpass',  6000);
+      const rHpf     = biquad(ctx, 'highpass', 300);
+      const gRain    = gain(ctx, 0.10);
+      const lfoRain  = ctx.createOscillator();
+      const lfoRainG = ctx.createGain();
+      lfoRain.type = 'sine'; lfoRain.frequency.value = 0.05;
+      lfoRainG.gain.value = 0.018;
+      lfoRain.connect(lfoRainG); lfoRainG.connect(gRain.gain);
+      rainBed.connect(rLpf); rLpf.connect(rHpf); rHpf.connect(gRain); gRain.connect(dest);
+      rainBed.start(); lfoRain.start();
+      nodes.push(rainBed, rLpf, rHpf, gRain, lfoRain, lfoRainG);
+
+      // Deep low rumble under the rain
+      const rumbleBed = makeNoise(ctx, 4);
+      const rumbleLpf = biquad(ctx, 'lowpass', 180);
+      const gRumble   = gain(ctx, 0.048);
+      rumbleBed.connect(rumbleLpf); rumbleLpf.connect(gRumble); gRumble.connect(dest);
+      rumbleBed.start();
+      nodes.push(rumbleBed, rumbleLpf, gRumble);
+
+      // Puddle splash — low wide burst
+      const makeSplash = () => {
+        const now  = ctx.currentTime;
+        const n    = makeNoise(ctx, 0.5);
+        const lpf  = biquad(ctx, 'lowpass',  1800);
+        const hpf  = biquad(ctx, 'highpass', 200);
+        const env  = ctx.createGain();
+        const vol  = 0.055 + Math.random() * 0.045;
+        env.gain.setValueAtTime(0.001, now);
+        env.gain.linearRampToValueAtTime(vol, now + 0.008);
+        env.gain.exponentialRampToValueAtTime(0.001, now + 0.18 + Math.random() * 0.12);
+        n.connect(lpf); lpf.connect(hpf); hpf.connect(env); env.connect(dest);
+        n.start(now); n.stop(now + 0.35);
+        nodes.push(n, lpf, hpf, env);
       };
 
-      const scheduleFrog = () => {
-        const gap = 7000 + Math.random() * 13000;
-        const tId = setTimeout(() => {
-          if (!alive.on) return;
-          makeFrog();
-          scheduleFrog();
-        }, gap);
-        nodes.push({ _tid: tId, disconnect() { clearTimeout(tId); } });
+      // Heavy individual drop impact — crisp thwack
+      const makeBigDrop = () => {
+        const now  = ctx.currentTime;
+        const freq = 600 + Math.random() * 800;
+        const n    = makeNoise(ctx, 0.3);
+        const bpf  = biquad(ctx, 'bandpass', freq, 5);
+        const env  = ctx.createGain();
+        env.gain.setValueAtTime(0.001, now);
+        env.gain.linearRampToValueAtTime(0.038 + Math.random() * 0.025, now + 0.005);
+        env.gain.exponentialRampToValueAtTime(0.001, now + 0.09 + Math.random() * 0.06);
+        n.connect(bpf); bpf.connect(env); env.connect(dest);
+        n.start(now); n.stop(now + 0.18);
+        nodes.push(n, bpf, env);
       };
-      makeFrog();
-      scheduleFrog();
-      nodes.push({ _tid: null, disconnect() { alive.on = false; } });
+
+      // Dense rapid drops
+      const scheduleDrop = () => {
+        const gap = 30 + Math.random() * 80;
+        safeTimeout(() => {
+          makeBigDrop();
+          if (Math.random() < 0.4) safeTimeout(makeBigDrop, 12 + Math.random() * 20);
+          scheduleDrop();
+        }, gap);
+      };
+
+      // Puddle splashes — medium frequency
+      const scheduleSplash = () => {
+        const gap = 350 + Math.random() * 900;
+        safeTimeout(() => {
+          makeSplash();
+          if (Math.random() < 0.25) safeTimeout(makeSplash, 80 + Math.random() * 60);
+          scheduleSplash();
+        }, gap);
+      };
+
+      scheduleDrop();
+      scheduleSplash();
+      safeTimeout(makeSplash, 100);
+
+      nodes.push({ _tid: null, disconnect() { alive.on = false; tids.forEach(clearTimeout); } });
       return nodes;
     },
 
