@@ -1822,40 +1822,8 @@
     /* ── Countdown ───────────────────────────────────────── */
     .countdown-inputs {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 12px;
+      margin-bottom: 4px;
     }
-    .cd-input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.80);
-      font-family: "Inter", sans-serif;
-      font-size: 22px;
-      font-weight: 300;
-      text-align: center;
-      letter-spacing: 0.06em;
-      box-sizing: border-box;
-    }
-    .cd-input:focus { outline: none; border-color: rgba(255,255,255,0.25); }
-    .cd-input::placeholder { color: rgba(255,255,255,0.22); }
-    body.light-mode .cd-input {
-      background: rgba(0,0,0,0.05);
-      border-color: rgba(0,0,0,0.12);
-      color: rgba(0,0,0,0.60);
-    }
-    body.light-mode .cd-input::placeholder { color: rgba(0,0,0,0.22); }
-    .cd-hint {
-      font-size: 10px;
-      font-family: "Inter", sans-serif;
-      color: rgba(255,255,255,0.22);
-      text-align: center;
-      letter-spacing: 0.04em;
-    }
-    body.light-mode .cd-hint { color: rgba(0,0,0,0.30); }
     .cd-display {
       text-align: center;
       font-family: "Inter", sans-serif;
@@ -1865,8 +1833,19 @@
       letter-spacing: 0.06em;
       margin-bottom: 12px;
       min-height: 46px;
+      cursor: text;
+      border-radius: 12px;
+      transition: background .15s;
+    }
+    .cd-display:hover:not(.running) { background: rgba(255,255,255,0.05); }
+    .cd-display.editing {
+      background: rgba(255,255,255,0.07);
+      outline: none;
+      border: 1px solid rgba(255,255,255,0.18);
     }
     body.light-mode .cd-display { color: #111; }
+    body.light-mode .cd-display:hover:not(.running) { background: rgba(0,0,0,0.04); }
+    body.light-mode .cd-display.editing { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.15); }
     .cd-display.done { color: #fb923c; }
     .cd-btns {
       display: flex;
@@ -2076,12 +2055,8 @@
 
     <!-- ── TAB: Countdown ── -->
     <div class="tab-panel" id="tab-countdown">
-      <div class="setting-label" style="margin-bottom:12px">Set Timer</div>
       <div class="countdown-inputs" id="cd-inputs">
-        <input class="cd-input" type="text" id="cd-time" placeholder="0:05:00" inputmode="numeric">
-        <div class="cd-hint">h:mm:ss &nbsp;·&nbsp; mm:ss &nbsp;·&nbsp; or seconds</div>
-      </div>
-      <div class="cd-display" id="cd-display">00:05:00</div>
+      <div class="cd-display" id="cd-display" role="textbox" aria-label="Timer" tabindex="0">00:05:00</div>
       <div class="cd-btns">
         <button class="cd-btn start" id="cd-start">Start</button>
         <button class="cd-btn reset" id="cd-reset">Reset</button>
@@ -3427,25 +3402,79 @@
     clearInterval(cdInterval);
     cdInterval = null;
     cdRunning = false;
+    cdDisp.classList.remove('running');
     document.getElementById('cd-start').textContent = cdRemain > 0 ? 'Resume' : 'Start';
   }
 
-  function cdParseInput() {
-    const raw = (document.getElementById('cd-time').value || '').trim();
-    const parts = raw.split(':').map(p => parseInt(p) || 0);
-    if (parts.length === 1) return parts[0];                          // seconds only
-    if (parts.length === 2) return parts[0] * 60 + parts[1];         // mm:ss
-    return parts[0] * 3600 + parts[1] * 60 + parts[2];               // h:mm:ss
+  /* ── Digit-entry on cd-display ─────────────────────────── */
+  let cdDigits = '000000'; // 6 digits: HHMMSS
+  const cdDisp = document.getElementById('cd-display');
+
+  function cdDigitsToSecs() {
+    const h = parseInt(cdDigits.slice(0,2));
+    const m = parseInt(cdDigits.slice(2,4));
+    const s = parseInt(cdDigits.slice(4,6));
+    return h*3600 + m*60 + s;
   }
+
+  function cdRenderDigits() {
+    const h = cdDigits.slice(0,2);
+    const m = cdDigits.slice(2,4);
+    const s = cdDigits.slice(4,6);
+    cdDisp.textContent = h+':'+m+':'+s;
+  }
+
+  function cdEnterEditMode() {
+    if (cdRunning) return;
+    cdDisp.classList.add('editing');
+    cdDisp.focus();
+  }
+
+  function cdExitEditMode() {
+    cdDisp.classList.remove('editing');
+    cdDisp.blur();
+    const secs = cdDigitsToSecs();
+    cdTotal  = secs;
+    cdRemain = secs;
+    cdUpdateDisplay();
+  }
+
+  cdDisp.addEventListener('click', cdEnterEditMode);
+  cdDisp.addEventListener('focus', () => { if (!cdRunning) cdDisp.classList.add('editing'); });
+  cdDisp.addEventListener('blur',  () => { cdDisp.classList.remove('editing'); });
+
+  cdDisp.addEventListener('keydown', (e) => {
+    if (cdRunning) return;
+    if (e.key >= '0' && e.key <= '9') {
+      e.preventDefault();
+      cdDigits = cdDigits.slice(1) + e.key;
+      cdRenderDigits();
+      const secs = cdDigitsToSecs();
+      cdTotal  = secs;
+      cdRemain = secs;
+    } else if (e.key === 'Backspace') {
+      e.preventDefault();
+      cdDigits = '0' + cdDigits.slice(0, 5);
+      cdRenderDigits();
+      const secs = cdDigitsToSecs();
+      cdTotal  = secs;
+      cdRemain = secs;
+    } else if (e.key === 'Enter') {
+      cdExitEditMode();
+    } else if (e.key === 'Escape') {
+      cdExitEditMode();
+    }
+  });
 
   document.getElementById('cd-start').addEventListener('click', () => {
     if (cdRunning) { cdStop(); return; }
     if (cdRemain === 0) {
-      cdTotal = cdParseInput();
+      cdTotal  = cdDigitsToSecs();
       cdRemain = cdTotal;
       if (cdRemain === 0) return;
     }
     cdRunning = true;
+    cdDisp.classList.add('running');
     document.getElementById('cd-start').textContent = 'Pause';
     document.getElementById('cd-inputs').style.opacity = '0.4';
     cdInterval = setInterval(() => {
@@ -3467,18 +3496,10 @@
     cdStop();
     cdRemain = 0;
     cdTotal  = 0;
+    cdDigits = '000000';
     document.getElementById('cd-inputs').style.opacity = '1';
     document.getElementById('cd-start').textContent = 'Start';
     cdUpdateDisplay();
-  });
-
-  // Sync display when input changes
-  document.getElementById('cd-time').addEventListener('input', () => {
-    if (!cdRunning && cdRemain === 0) {
-      const secs = cdParseInput();
-      document.getElementById('cd-display').textContent = cdFormat(secs);
-      document.getElementById('cd-display').classList.remove('done');
-    }
   });
 
   /* ══════════════════════════════════════════════════════
