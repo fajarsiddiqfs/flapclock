@@ -4548,9 +4548,9 @@
         var ex = ac.x + tipGap;
         var ey = ac.y + tipGap;
 
-        /* Control point: pull far left of midpoint to create a proper leftward curve */
-        var mx = ac.x - 8;
-        var my = sy;
+        /* Control point: inner curve — bows inward between label and badge */
+        var mx = (sx + ex) / 2;
+        var my = (sy + ey) / 2 - 18;
 
         var p = document.createElementNS(NS1, 'path');
         p.setAttribute('d', 'M'+sx+' '+sy+' Q'+mx+' '+my+' '+ex+' '+ey);
