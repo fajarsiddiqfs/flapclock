@@ -4528,29 +4528,29 @@
          they follow the clock no matter the screen width.
       ══════════════════════════════════════════════════════ */
 
-      /* 1. "Click Me!" — label above-left of AM badge, arrow goes right-down to badge */
+      /* 1. "Click Me!" — label above-right of AM, arrow points left-down to badge */
       (function () {
         var g1  = document.getElementById('hint-ampm');
         g1.innerHTML = '';
         var col = inkColor();
         var NS1 = 'http://www.w3.org/2000/svg';
 
-        /* Label: sits above and to the left of the badge */
-        var lx = ac.x - 55;
-        var ly = ac.y - 28;
+        /* Label: sits above and to the right of AM badge */
+        var lx = ac.x + 18;
+        var ly = ac.y - 32;
 
-        /* Arrow tail: from the right end of the label, at label baseline */
-        var sx = lx + 58;
-        var sy = ly;
+        /* Arrow tail: from the left edge of the label */
+        var sx = lx;
+        var sy = ly + 4;
 
-        /* Arrow tip: just above the badge centre — arrow arrives from upper-left going right-down */
+        /* Arrow tip: just right of the badge centre */
         var tipGap = 10;
-        var ex = ac.x - tipGap;
-        var ey = ac.y - tipGap;
+        var ex = ac.x + tipGap;
+        var ey = ac.y + tipGap;
 
-        /* Control point curves the line rightward then downward */
-        var mx = sx + (ex - sx) * 0.7;
-        var my = sy + (ey - sy) * 0.3;
+        /* Control point: slight leftward dip so arrow curves left-down */
+        var mx = sx - 10;
+        var my = (sy + ey) / 2;
 
         var p = document.createElementNS(NS1, 'path');
         p.setAttribute('d', 'M'+sx+' '+sy+' Q'+mx+' '+my+' '+ex+' '+ey);
@@ -4560,7 +4560,7 @@
         p.setAttribute('stroke-linecap', 'round');
         g1.appendChild(p);
 
-        /* Arrowhead pointing right-down at badge */
+        /* Arrowhead pointing left-down into badge */
         var headLen = 7;
         var ang = Math.atan2(ey - my, ex - mx);
         [ang - 0.45, ang + 0.45].forEach(function (a) {
