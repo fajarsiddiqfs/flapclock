@@ -2240,6 +2240,20 @@
       <div class="setting-label" style="margin-bottom:14px">Ambient & Nature Sounds</div>
       <div class="sound-list" id="sound-list">
 
+        <div class="sound-item" data-sound="thunderrain" data-title="Rain &amp; Thunder">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="13 11 9 17 15 17 11 23"/></svg></div>
+          <div class="sound-info">
+            <div class="sound-name">Rain &amp; Thunder</div>
+            <div class="sound-desc">Heavy rain with distant thunder rumbles</div>
+          </div>
+          <div class="sound-ctrl">
+            <div class="sound-play-btn">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+          </div>
+        </div>
+
         <div class="sound-item" data-sound="rain" data-title="Forest Rain">
           <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="16" y1="19" x2="16" y2="21"/><line x1="16" y1="13" x2="16" y2="15"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="12" y1="15" x2="12" y2="17"/></svg></div>
           <div class="sound-info">
@@ -2282,25 +2296,11 @@
           </div>
         </div>
 
-        <div class="sound-item" data-sound="wind" data-title="Wind Through Trees">
-          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg></div>
+        <div class="sound-item" data-sound="birdslow" data-title="Birds Chirping">
+          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 12c1-2 3-3 4-3s2 .5 2 1.5-1 1.5-2 1.5H8"/><path d="M8 12c0 1.5 1 3 4 3"/><circle cx="15" cy="9" r="1" fill="currentColor"/></svg></div>
           <div class="sound-info">
-            <div class="sound-name">Wind Through Trees</div>
-            <div class="sound-desc">Gentle rustle of leaves in the breeze</div>
-          </div>
-          <div class="sound-ctrl">
-            <div class="sound-play-btn">
-              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-            </div>
-          </div>
-        </div>
-
-        <div class="sound-item" data-sound="rainfall" data-title="Rhythmic Rainfall">
-          <div class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="16" y1="19" x2="16" y2="21"/><line x1="16" y1="13" x2="16" y2="15"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="12" y1="15" x2="12" y2="17"/></svg></div>
-          <div class="sound-info">
-            <div class="sound-name">Rhythmic Rainfall</div>
-            <div class="sound-desc">Steady rain for deep focus</div>
+            <div class="sound-name">Birds Chirping</div>
+            <div class="sound-desc">Slow, gentle birdsong with quiet gaps</div>
           </div>
           <div class="sound-ctrl">
             <div class="sound-play-btn">
@@ -3926,6 +3926,51 @@
       return nodes;
     },
 
+    thunderrain(ctx, dest) {
+      // Rain & Thunder: heavy broadband rain + deep rumbling thunder strikes
+      const rain   = makeNoise(ctx, 4);
+      const lpf    = biquad(ctx, 'lowpass', 6000);
+      const hpf    = biquad(ctx, 'highpass', 200);
+      const gRain  = gain(ctx, 0.4);
+      const lfo    = ctx.createOscillator();
+      const lfoG   = ctx.createGain();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.07;
+      lfoG.gain.value = 0.06;
+      lfo.connect(lfoG); lfoG.connect(gRain.gain);
+      rain.connect(lpf); lpf.connect(hpf); hpf.connect(gRain); gRain.connect(dest);
+      rain.start(); lfo.start();
+      const nodes = [rain, lpf, hpf, gRain, lfo, lfoG];
+      const scheduleThunder = () => {
+        const delay = 8000 + Math.random() * 14000;
+        const tId = setTimeout(() => {
+          try {
+            const now = ctx.currentTime;
+            const tn   = makeNoise(ctx, 4);
+            const tlpf = biquad(ctx, 'lowpass', 180);
+            const tg   = ctx.createGain();
+            tg.gain.setValueAtTime(0.001, now);
+            tg.gain.linearRampToValueAtTime(0.55, now + 0.3);
+            tg.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
+            tn.connect(tlpf); tlpf.connect(tg); tg.connect(dest);
+            tn.start(now); tn.stop(now + 4);
+            const tn2  = makeNoise(ctx, 4);
+            const tbpf = biquad(ctx, 'bandpass', 800, 2);
+            const tg2  = ctx.createGain();
+            tg2.gain.setValueAtTime(0.001, now);
+            tg2.gain.linearRampToValueAtTime(0.18, now + 0.04);
+            tg2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            tn2.connect(tbpf); tbpf.connect(tg2); tg2.connect(dest);
+            tn2.start(now); tn2.stop(now + 0.7);
+          } catch(e) {}
+          scheduleThunder();
+        }, delay);
+        nodes.push({ _tid: tId, disconnect() { clearTimeout(this._tid); } });
+      };
+      scheduleThunder();
+      return nodes;
+    },
+
     wind(ctx, dest) {
       // Wind through trees: bandpassed noise with slow LFO for gusting effect
       const noise  = makeNoise(ctx, 4);
@@ -3957,27 +4002,53 @@
       return [noise, bpf, lpf, gNode, lfo, lfoG, noise2, hpf, gRust, lfo2, lfoG2];
     },
 
-    rainfall(ctx, dest) {
-      // Rhythmic rainfall: steady broadband noise shaped for focused work
-      const noise  = makeNoise(ctx, 4);
-      const lpf    = biquad(ctx, 'lowpass', 5000);
-      const hpf    = biquad(ctx, 'highpass', 300);
-      const gNode  = gain(ctx, 0.35);
-      // Slight rhythmic modulation — very subtle, like rain intensity shifting
-      const lfo    = ctx.createOscillator();
-      const lfoG   = ctx.createGain();
-      lfo.type = 'sine';
-      lfo.frequency.value = 0.25;
-      lfoG.gain.value = 0.04;
-      lfo.connect(lfoG); lfoG.connect(gNode.gain);
-      noise.connect(lpf); lpf.connect(hpf); hpf.connect(gNode); gNode.connect(dest);
-      // Add a soft low rumble layer for depth
-      const noise2 = makeNoise(ctx, 4);
-      const lpf2   = biquad(ctx, 'lowpass', 250);
-      const gRumble = gain(ctx, 0.08);
-      noise2.connect(lpf2); lpf2.connect(gRumble); gRumble.connect(dest);
-      noise.start(); noise2.start(); lfo.start();
-      return [noise, lpf, hpf, gNode, lfo, lfoG, noise2, lpf2, gRumble];
+    birdslow(ctx, dest) {
+      // Birds Chirping Slow: sparse, gentle bird calls with long quiet gaps
+      const nodes = [];
+      // Soft ambient bed — barely audible breeze
+      const bed  = makeNoise(ctx, 4);
+      const blpf = biquad(ctx, 'lowpass', 600);
+      const gBed = gain(ctx, 0.03);
+      bed.connect(blpf); blpf.connect(gBed); gBed.connect(dest);
+      bed.start();
+      nodes.push(bed, blpf, gBed);
+      // Single chirp builder — slow gentle sweep
+      const makeChirp = (freq, dur, vol) => {
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
+        const now = ctx.currentTime;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.linearRampToValueAtTime(freq * 1.1, now + dur * 0.5);
+        osc.frequency.linearRampToValueAtTime(freq * 0.97, now + dur);
+        env.gain.setValueAtTime(0.001, now);
+        env.gain.linearRampToValueAtTime(vol, now + 0.06);
+        env.gain.exponentialRampToValueAtTime(0.001, now + dur);
+        osc.connect(env); env.connect(dest);
+        osc.start(now); osc.stop(now + dur + 0.08);
+        return [osc, env];
+      };
+      // Occasional soft double-note call
+      const makeCall = () => {
+        const freq = 2400 + Math.random() * 600;
+        const n1 = makeChirp(freq, 0.14, 0.06);
+        nodes.push(...n1);
+        setTimeout(() => {
+          try { const n2 = makeChirp(freq * 1.07, 0.11, 0.045); nodes.push(...n2); } catch(e) {}
+        }, 160);
+      };
+      makeCall();
+      // Long random gap between calls: 4–10 s
+      const schedule = () => {
+        const gap = 4000 + Math.random() * 6000;
+        const tId = setTimeout(() => {
+          try { makeCall(); } catch(e) {}
+          schedule();
+        }, gap);
+        nodes.push({ _tid: tId, disconnect() { clearTimeout(this._tid); } });
+      };
+      schedule();
+      return nodes;
     }
   };
 
@@ -4027,9 +4098,6 @@
     var id     = item.dataset.sound;
     var isSame = soundPlaying === item;
     var FADE   = 200; // ms crossfade
-
-    // Stop radio if playing
-    if (typeof window._stopRadio === 'function') window._stopRadio(true);
 
     stopSound(FADE);
     if (isSame) return; // toggle off
@@ -4150,9 +4218,6 @@
         playBtn.querySelector('.icon-play').style.display  = 'none';
         playBtn.querySelector('.icon-pause').style.display = '';
       }
-
-      // Stop ambient sound if playing
-      if (typeof stopSound === 'function') stopSound(0);
 
       // Stop old stream instantly (no fade — speed matters)
       if (radioAudio) { try { radioAudio.pause(); } catch(e) {} }
