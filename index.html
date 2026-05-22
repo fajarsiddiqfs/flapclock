@@ -3713,190 +3713,156 @@
   const SYNTHS = {
 
     rain(ctx, dest) {
-      // Night Crickets: very soft, calm insect chorus
+      // Night Crickets — gentle filtered hum, barely audible
+      const alive = { on: true };
       const nodes = [];
 
-      // Faint low air bed
-      const bed  = makeNoise(ctx, 4);
-      const blpf = biquad(ctx, 'lowpass', 300);
-      const gBed = gain(ctx, 0.02);
-      bed.connect(blpf); blpf.connect(gBed); gBed.connect(dest);
-      bed.start();
-      nodes.push(bed, blpf, gBed);
-
-      // Cricket — AM sine, very low vol, smoothed by narrow BPF to avoid harshness
-      const makeCricket = (freq, pulseRate, vol) => {
-        const osc  = ctx.createOscillator();
-        const bpf  = biquad(ctx, 'bandpass', freq, 8);
-        const am   = ctx.createOscillator();
-        const amG  = ctx.createGain();
-        const env  = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq;
-        am.type  = 'sine'; am.frequency.value  = pulseRate;
-        amG.gain.value = vol * 0.45;
-        env.gain.value = vol * 0.55;
-        am.connect(amG); amG.connect(env.gain);
-        osc.connect(bpf); bpf.connect(env); env.connect(dest);
-        osc.start(); am.start();
-        return [osc, bpf, am, amG, env];
-      };
-
-      // Cicada — very slow gentle swell, barely audible
-      const makeCicada = (freq, swellRate, vol) => {
-        const osc  = ctx.createOscillator();
-        const bpf  = biquad(ctx, 'bandpass', freq, 6);
+      // Soft continuous cricket hum: narrow bandpass noise, very low
+      const mkLayer = (freq, q, vol) => {
+        const n  = makeNoise(ctx, 4);
+        const bp = biquad(ctx, 'bandpass', freq, q);
+        const g  = gain(ctx, vol);
+        // Slow breath LFO
         const lfo  = ctx.createOscillator();
         const lfoG = ctx.createGain();
-        const env  = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq;
-        lfo.type = 'sine'; lfo.frequency.value = swellRate;
-        lfoG.gain.value = vol * 0.4;
-        env.gain.value  = vol * 0.3;
-        lfo.connect(lfoG); lfoG.connect(env.gain);
-        osc.connect(bpf); bpf.connect(env); env.connect(dest);
-        osc.start(); lfo.start();
-        return [osc, bpf, lfo, lfoG, env];
+        lfo.type = 'sine'; lfo.frequency.value = 0.08 + Math.random() * 0.06;
+        lfoG.gain.value = vol * 0.3;
+        lfo.connect(lfoG); lfoG.connect(g.gain);
+        n.connect(bp); bp.connect(g); g.connect(dest);
+        n.start(); lfo.start();
+        return [n, bp, g, lfo, lfoG];
       };
 
-      nodes.push(...makeCricket(3100, 20, 0.022));
-      nodes.push(...makeCricket(3280, 17, 0.016));
-      nodes.push(...makeCricket(2900, 23, 0.014));
-      nodes.push(...makeCicada(4100, 0.35, 0.018));
+      nodes.push(...mkLayer(3000, 12, 0.012));
+      nodes.push(...mkLayer(3300, 10, 0.009));
+      nodes.push(...mkLayer(2800, 14, 0.008));
 
+      // Tiny bed noise — near-silence
+      const bed = makeNoise(ctx, 4);
+      const blp = biquad(ctx, 'lowpass', 280);
+      const gbg = gain(ctx, 0.010);
+      bed.connect(blp); blp.connect(gbg); gbg.connect(dest);
+      bed.start();
+      nodes.push(bed, blp, gbg);
+
+      nodes.push({ _tid: null, disconnect() { alive.on = false; } });
       return nodes;
     },
 
     ocean(ctx, dest) {
-      // Ocean Waves: slow crashing, quiet and calm
+      // Ocean Waves — slow swell, gentle crash, long fade
+      const alive = { on: true };
       const nodes = [];
 
-      // Soft deep rumble bed
-      const bed  = makeNoise(ctx, 4);
-      const blpf = biquad(ctx, 'lowpass', 260);
-      const gBed = gain(ctx, 0.06);
-      bed.connect(blpf); blpf.connect(gBed); gBed.connect(dest);
+      // Constant soft low rumble
+      const bed = makeNoise(ctx, 4);
+      const blp = biquad(ctx, 'lowpass', 240);
+      const gbg = gain(ctx, 0.040);
+      bed.connect(blp); blp.connect(gbg); gbg.connect(dest);
       bed.start();
-      nodes.push(bed, blpf, gBed);
+      nodes.push(bed, blp, gbg);
 
       const scheduleWave = (delayMs) => {
         const tId = setTimeout(() => {
+          if (!alive.on) return;
           try {
-            const now = ctx.currentTime;
-            const wavePeriod = 8 + Math.random() * 4;
-            const buildT  = wavePeriod * 0.40;
-            const crashT  = wavePeriod * 0.12;
+            const now  = ctx.currentTime;
+            const dur  = 9 + Math.random() * 4;
+            const bldT = dur * 0.42;
+            const crT  = dur * 0.10;
 
-            // Crash layer — kept soft, peak 0.18
-            const crash = makeNoise(ctx, 4);
-            const clpf  = biquad(ctx, 'lowpass', 3200);
-            const chpf  = biquad(ctx, 'highpass', 200);
-            const cg    = ctx.createGain();
-            cg.gain.setValueAtTime(0.001, now);
-            cg.gain.linearRampToValueAtTime(0.04, now + buildT);
-            cg.gain.linearRampToValueAtTime(0.18, now + buildT + crashT);
-            cg.gain.exponentialRampToValueAtTime(0.001, now + wavePeriod);
-            crash.connect(clpf); clpf.connect(chpf); chpf.connect(cg); cg.connect(dest);
-            crash.start(now); crash.stop(now + wavePeriod + 0.1);
-            nodes.push(crash, clpf, chpf, cg);
-
-            // Foam hiss — very faint
-            const foam  = makeNoise(ctx, 4);
-            const fhpf  = biquad(ctx, 'highpass', 2400);
-            const fg    = ctx.createGain();
-            fg.gain.setValueAtTime(0.001, now + buildT);
-            fg.gain.linearRampToValueAtTime(0.042, now + buildT + crashT);
-            fg.gain.exponentialRampToValueAtTime(0.001, now + wavePeriod);
-            foam.connect(fhpf); fhpf.connect(fg); fg.connect(dest);
-            foam.start(now + buildT); foam.stop(now + wavePeriod + 0.1);
-            nodes.push(foam, fhpf, fg);
+            const n  = makeNoise(ctx, 4);
+            const lp = biquad(ctx, 'lowpass', 2800);
+            const hp = biquad(ctx, 'highpass', 180);
+            const g  = ctx.createGain();
+            g.gain.setValueAtTime(0.001, now);
+            g.gain.linearRampToValueAtTime(0.030, now + bldT);
+            g.gain.linearRampToValueAtTime(0.110, now + bldT + crT);
+            g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+            n.connect(lp); lp.connect(hp); hp.connect(g); g.connect(dest);
+            n.start(now); n.stop(now + dur + 0.1);
+            nodes.push(n, lp, hp, g);
           } catch(e) {}
-
-          scheduleWave((8 + Math.random() * 4) * 1000 * 0.05);
+          scheduleWave((9 + Math.random() * 4) * 400);
         }, delayMs);
-        nodes.push({ _tid: tId, disconnect() { clearTimeout(this._tid); } });
+        nodes.push({ _tid: tId, disconnect() { clearTimeout(tId); } });
       };
 
-      scheduleWave(0);
+      scheduleWave(200);
       scheduleWave(5000 + Math.random() * 2000);
-
+      nodes.push({ _tid: null, disconnect() { alive.on = false; } });
       return nodes;
     },
 
     forest(ctx, dest) {
-      // Night Frogs: calm sparse croaks + gentle insect trills, very quiet
+      // Night Frogs — soft low croaks, sparse, with faint insect bed
+      const alive = { on: true };
       const nodes = [];
 
-      // Barely-there air bed
-      const bed  = makeNoise(ctx, 4);
-      const blpf = biquad(ctx, 'lowpass', 350);
-      const gBed = gain(ctx, 0.018);
-      bed.connect(blpf); blpf.connect(gBed); gBed.connect(dest);
-      bed.start();
-      nodes.push(bed, blpf, gBed);
+      // Faint high insect hum bed
+      const bed = makeNoise(ctx, 4);
+      const blp = biquad(ctx, 'bandpass', 4800, 8);
+      const gbg = gain(ctx, 0.008);
+      const lfo  = ctx.createOscillator();
+      const lfoG = ctx.createGain();
+      lfo.type = 'sine'; lfo.frequency.value = 0.06;
+      lfoG.gain.value = 0.003;
+      lfo.connect(lfoG); lfoG.connect(gbg.gain);
+      bed.connect(blp); blp.connect(gbg); gbg.connect(dest);
+      bed.start(); lfo.start();
+      nodes.push(bed, blp, gbg, lfo, lfoG);
 
-      // Frog croak — low, short, gentle
       const makeFrog = () => {
+        if (!alive.on) return;
         try {
           const now  = ctx.currentTime;
-          const freq = 190 + Math.random() * 50;
+          const freq = 200 + Math.random() * 40;
           const osc  = ctx.createOscillator();
-          const env  = ctx.createGain();
+          const lp   = biquad(ctx, 'lowpass', 600);
+          const g    = ctx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(freq, now);
-          osc.frequency.linearRampToValueAtTime(freq * 0.84, now + 0.20);
-          env.gain.setValueAtTime(0.001, now);
-          env.gain.linearRampToValueAtTime(0.032, now + 0.025);
-          env.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
-          osc.connect(env); env.connect(dest);
-          osc.start(now); osc.stop(now + 0.28);
-          nodes.push(osc, env);
-          if (Math.random() < 0.4) {
-            setTimeout(() => {
+          osc.frequency.linearRampToValueAtTime(freq * 0.85, now + 0.22);
+          g.gain.setValueAtTime(0.001, now);
+          g.gain.linearRampToValueAtTime(0.022, now + 0.030);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+          osc.connect(lp); lp.connect(g); g.connect(dest);
+          osc.start(now); osc.stop(now + 0.30);
+          nodes.push(osc, lp, g);
+          if (Math.random() < 0.35 && alive.on) {
+            const t2 = setTimeout(() => {
+              if (!alive.on) return;
               try {
-                const n2 = ctx.currentTime;
-                const o2 = ctx.createOscillator();
-                const e2 = ctx.createGain();
-                o2.type = 'sine'; o2.frequency.value = freq * 0.88;
-                e2.gain.setValueAtTime(0.001, n2);
-                e2.gain.linearRampToValueAtTime(0.022, n2 + 0.025);
-                e2.gain.exponentialRampToValueAtTime(0.001, n2 + 0.20);
-                o2.connect(e2); e2.connect(dest);
-                o2.start(n2); o2.stop(n2 + 0.24);
-                nodes.push(o2, e2);
+                const n2  = ctx.currentTime;
+                const o2  = ctx.createOscillator();
+                const lp2 = biquad(ctx, 'lowpass', 600);
+                const g2  = ctx.createGain();
+                o2.type = 'sine'; o2.frequency.value = freq * 0.87;
+                g2.gain.setValueAtTime(0.001, n2);
+                g2.gain.linearRampToValueAtTime(0.015, n2 + 0.030);
+                g2.gain.exponentialRampToValueAtTime(0.001, n2 + 0.22);
+                o2.connect(lp2); lp2.connect(g2); g2.connect(dest);
+                o2.start(n2); o2.stop(n2 + 0.26);
+                nodes.push(o2, lp2, g2);
               } catch(e) {}
-            }, 300 + Math.random() * 160);
+            }, 320 + Math.random() * 140);
+            nodes.push({ _tid: t2, disconnect() { clearTimeout(t2); } });
           }
         } catch(e) {}
       };
 
-      // Insect trill — narrow BPF to tame harshness, very low vol
-      const makeTrill = (freq, rate, vol) => {
-        const osc  = ctx.createOscillator();
-        const bpf  = biquad(ctx, 'bandpass', freq, 10);
-        const am   = ctx.createOscillator();
-        const amG  = ctx.createGain();
-        const env  = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq;
-        am.type  = 'sine'; am.frequency.value  = rate;
-        amG.gain.value = vol * 0.5;
-        env.gain.value = vol * 0.5;
-        am.connect(amG); amG.connect(env.gain);
-        osc.connect(bpf); bpf.connect(env); env.connect(dest);
-        osc.start(); am.start();
-        return [osc, bpf, am, amG, env];
-      };
-
-      nodes.push(...makeTrill(5000, 34, 0.013));
-      nodes.push(...makeTrill(4500, 28, 0.010));
-
       const scheduleFrog = () => {
-        const gap = 6000 + Math.random() * 12000;
-        const tId = setTimeout(() => { makeFrog(); scheduleFrog(); }, gap);
-        nodes.push({ _tid: tId, disconnect() { clearTimeout(this._tid); } });
+        const gap = 7000 + Math.random() * 13000;
+        const tId = setTimeout(() => {
+          if (!alive.on) return;
+          makeFrog();
+          scheduleFrog();
+        }, gap);
+        nodes.push({ _tid: tId, disconnect() { clearTimeout(tId); } });
       };
       makeFrog();
       scheduleFrog();
-
+      nodes.push({ _tid: null, disconnect() { alive.on = false; } });
       return nodes;
     },
 
@@ -4158,16 +4124,27 @@
     },
 
     birdslow(ctx, dest) {
-      // Different birds nearby — 4 distinct species, staggered calls, soft forest bed
+      // Different birds nearby — 4 distinct species, staggered calls, pure birdsong only
       const nodes = [];
+      // Central timeout registry so ALL timeouts can be cancelled on stop
+      const tids = [];
+      let alive = true;
 
-      // Soft ambient forest bed
-      const bed  = makeNoise(ctx, 4);
-      const blpf = biquad(ctx, 'lowpass', 700);
-      const gBed = gain(ctx, 0.03);
-      bed.connect(blpf); blpf.connect(gBed); gBed.connect(dest);
-      bed.start();
-      nodes.push(bed, blpf, gBed);
+      function safeTimeout(fn, ms) {
+        if (!alive) return;
+        const tid = setTimeout(() => { if (alive) { try { fn(); } catch(e) {} } }, ms);
+        tids.push(tid);
+        // Also expose as a node-like object so stopSound's loop can cancel it
+        nodes.push({ _tid: tid, disconnect() { clearTimeout(this._tid); } });
+      }
+
+      // Helper to cancel everything immediately
+      function cancelAll() {
+        alive = false;
+        tids.forEach(id => clearTimeout(id));
+      }
+      // Attach canceller so stopSound triggers it
+      nodes.push({ _tid: null, disconnect() { cancelAll(); } });
 
       // ── Bird species call builders ──
 
@@ -4175,69 +4152,66 @@
       const makeRobin = () => {
         const count = 3 + Math.floor(Math.random() * 3);
         for (let i = 0; i < count; i++) {
-          setTimeout(() => {
-            try {
-              const now  = ctx.currentTime;
-              const freq = 2800 + i * 180 + Math.random() * 120;
-              const osc  = ctx.createOscillator();
-              const env  = ctx.createGain();
-              osc.type = 'sine';
-              osc.frequency.setValueAtTime(freq, now);
-              osc.frequency.linearRampToValueAtTime(freq * 1.18, now + 0.09);
-              env.gain.setValueAtTime(0.001, now);
-              env.gain.linearRampToValueAtTime(0.08, now + 0.02);
-              env.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
-              osc.connect(env); env.connect(dest);
-              osc.start(now); osc.stop(now + 0.14);
-              nodes.push(osc, env);
-            } catch(e) {}
+          safeTimeout(() => {
+            if (!alive) return;
+            const now  = ctx.currentTime;
+            const freq = 2800 + i * 180 + Math.random() * 120;
+            const osc  = ctx.createOscillator();
+            const env  = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            osc.frequency.linearRampToValueAtTime(freq * 1.18, now + 0.09);
+            env.gain.setValueAtTime(0.001, now);
+            env.gain.linearRampToValueAtTime(0.08, now + 0.02);
+            env.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+            osc.connect(env); env.connect(dest);
+            osc.start(now); osc.stop(now + 0.14);
+            nodes.push(osc, env);
           }, i * 130);
         }
       };
 
-      // Warbler-like: fast descending whistle, single long note with vibrato
+      // Warbler-like: fast descending whistle with vibrato
       const makeWarbler = () => {
-        try {
-          const now  = ctx.currentTime;
-          const base = 3600 + Math.random() * 400;
-          const osc  = ctx.createOscillator();
-          const vib  = ctx.createOscillator();
-          const vibG = ctx.createGain();
-          const env  = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(base, now);
-          osc.frequency.linearRampToValueAtTime(base * 0.74, now + 0.32);
-          vib.type = 'sine'; vib.frequency.value = 14;
-          vibG.gain.value = 28;
-          vib.connect(vibG); vibG.connect(osc.frequency);
-          env.gain.setValueAtTime(0.001, now);
-          env.gain.linearRampToValueAtTime(0.07, now + 0.04);
-          env.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-          osc.connect(env); env.connect(dest);
-          osc.start(now); osc.stop(now + 0.4);
-          vib.start(now); vib.stop(now + 0.4);
-          nodes.push(osc, vib, vibG, env);
-        } catch(e) {}
+        if (!alive) return;
+        const now  = ctx.currentTime;
+        const base = 3600 + Math.random() * 400;
+        const osc  = ctx.createOscillator();
+        const vib  = ctx.createOscillator();
+        const vibG = ctx.createGain();
+        const env  = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(base, now);
+        osc.frequency.linearRampToValueAtTime(base * 0.74, now + 0.32);
+        vib.type = 'sine'; vib.frequency.value = 14;
+        vibG.gain.value = 28;
+        vib.connect(vibG); vibG.connect(osc.frequency);
+        env.gain.setValueAtTime(0.001, now);
+        env.gain.linearRampToValueAtTime(0.07, now + 0.04);
+        env.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(env); env.connect(dest);
+        osc.start(now); osc.stop(now + 0.4);
+        vib.start(now); vib.stop(now + 0.4);
+        nodes.push(osc, vib, vibG, env);
       };
 
       // Dove-like: low soft coo — two slow notes, second lower
       const makeDove = () => {
         const makeNote = (freq, startDelay, dur, vol) => {
-          setTimeout(() => {
-            try {
-              const now = ctx.currentTime;
-              const osc = ctx.createOscillator();
-              const env = ctx.createGain();
-              osc.type = 'sine';
-              osc.frequency.setValueAtTime(freq, now);
-              osc.frequency.linearRampToValueAtTime(freq * 0.96, now + dur);
-              env.gain.setValueAtTime(0.001, now);
-              env.gain.linearRampToValueAtTime(vol, now + 0.08);
-              env.gain.exponentialRampToValueAtTime(0.001, now + dur);
-              osc.connect(env); env.connect(dest);
-              osc.start(now); osc.stop(now + dur + 0.05);
-              nodes.push(osc, env);
-            } catch(e) {}
+          safeTimeout(() => {
+            if (!alive) return;
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const env = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            osc.frequency.linearRampToValueAtTime(freq * 0.96, now + dur);
+            env.gain.setValueAtTime(0.001, now);
+            env.gain.linearRampToValueAtTime(vol, now + 0.08);
+            env.gain.exponentialRampToValueAtTime(0.001, now + dur);
+            osc.connect(env); env.connect(dest);
+            osc.start(now); osc.stop(now + dur + 0.05);
+            nodes.push(osc, env);
           }, startDelay);
         };
         const base = 420 + Math.random() * 60;
@@ -4250,47 +4224,44 @@
         const count = 2 + Math.floor(Math.random() * 3);
         const freq  = 4200 + Math.random() * 500;
         for (let i = 0; i < count; i++) {
-          setTimeout(() => {
-            try {
-              const now = ctx.currentTime;
-              const osc = ctx.createOscillator();
-              const env = ctx.createGain();
-              osc.type = 'triangle';
-              osc.frequency.value = freq;
-              env.gain.setValueAtTime(0.001, now);
-              env.gain.linearRampToValueAtTime(0.06, now + 0.01);
-              env.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
-              osc.connect(env); env.connect(dest);
-              osc.start(now); osc.stop(now + 0.09);
-              nodes.push(osc, env);
-            } catch(e) {}
+          safeTimeout(() => {
+            if (!alive) return;
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const env = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            env.gain.setValueAtTime(0.001, now);
+            env.gain.linearRampToValueAtTime(0.06, now + 0.01);
+            env.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+            osc.connect(env); env.connect(dest);
+            osc.start(now); osc.stop(now + 0.09);
+            nodes.push(osc, env);
           }, i * 95);
         }
       };
 
-      const species = [makeRobin, makeWarbler, makeDove, makeSparrow];
-
-      // Each bird has its own independent random schedule
+      // Each bird has its own independent random schedule using safeTimeout
       const schedulebird = (callFn, minGap, maxGap) => {
         const gap = minGap + Math.random() * (maxGap - minGap);
-        const tId = setTimeout(() => {
-          try { callFn(); } catch(e) {}
+        safeTimeout(() => {
+          if (!alive) return;
+          callFn();
           schedulebird(callFn, minGap, maxGap);
         }, gap);
-        nodes.push({ _tid: tId, disconnect() { clearTimeout(this._tid); } });
       };
 
       // Fire initial calls staggered, then let each run on its own rhythm
-      setTimeout(() => schedulebird(makeRobin,   3500, 8000), 300);
-      setTimeout(() => schedulebird(makeWarbler, 5000, 11000), 1800);
-      setTimeout(() => schedulebird(makeDove,    7000, 14000), 800);
-      setTimeout(() => schedulebird(makeSparrow, 4000, 9000),  2600);
+      safeTimeout(() => schedulebird(makeRobin,   3500, 8000), 300);
+      safeTimeout(() => schedulebird(makeWarbler, 5000, 11000), 1800);
+      safeTimeout(() => schedulebird(makeDove,    7000, 14000), 800);
+      safeTimeout(() => schedulebird(makeSparrow, 4000, 9000),  2600);
 
       // Kick off one call from each right away so it's not silent at start
       makeRobin();
-      setTimeout(makeWarbler, 1200);
-      setTimeout(makeDove,    2800);
-      setTimeout(makeSparrow, 700);
+      safeTimeout(makeWarbler, 1200);
+      safeTimeout(makeDove,    2800);
+      safeTimeout(makeSparrow, 700);
 
       return nodes;
     }
@@ -4301,8 +4272,12 @@
     var nodesToStop = soundNodes.slice();
     soundNodes = [];
 
+    // Cancel all scheduled timers IMMEDIATELY so no new nodes are created
+    nodesToStop.forEach(function(n) {
+      if (n && n._tid != null) { try { clearTimeout(n._tid); } catch(e) {} }
+    });
+
     if (fade > 0 && masterGain) {
-      // Fade out existing nodes gracefully
       try {
         var ctx = ensureCtx();
         var now = ctx.currentTime;
@@ -4314,7 +4289,6 @@
             try { if (n.stop) n.stop(); } catch(e) {}
             try { n.disconnect(); } catch(e) {}
           });
-          // Reset gain for next sound
           try { masterGain.gain.cancelScheduledValues(0); masterGain.gain.value = getSoundVolume(); } catch(e) {}
         }, fade + 50);
       } catch(e) {
