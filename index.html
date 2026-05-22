@@ -1659,6 +1659,9 @@
       border-radius: 12px;
       padding: 4px;
       flex-shrink: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
     .modal-tabs::-webkit-scrollbar { display: none; }
     body.light-mode .modal-tabs {
@@ -1667,6 +1670,7 @@
     }
     .modal-tab {
       flex: 1;
+      flex-shrink: 0;
       padding: 7px 2px;
       border-radius: 9px;
       border: none;
@@ -2075,6 +2079,7 @@
     <!-- Tabs -->
     <div class="modal-tabs">
       <button class="modal-tab active" data-tab="general">General</button>
+      <button class="modal-tab" data-tab="demo">Demo</button>
       <button class="modal-tab" data-tab="calendar">Calendar</button>
       <button class="modal-tab" data-tab="alarm">Alarm</button>
       <button class="modal-tab" data-tab="countdown">Timer</button>
@@ -2111,6 +2116,25 @@
       <div class="setting-section">
         <div class="setting-label">Timezone</div>
         <select class="tz-select" id="tz-select"></select>
+      </div>
+    </div>
+
+    <!-- ── TAB: Demo ── -->
+    <div class="tab-panel" id="tab-demo">
+      <div class="setting-section">
+        <div class="setting-label">How to Use Flap Clock</div>
+        <div style="margin-top:10px; border-radius:12px; overflow:hidden; background:#000; aspect-ratio:16/9; width:100%;">
+          <iframe
+            src="https://www.youtube.com/embed/qfy5yXSgV9k"
+            title="Flap Clock Demo"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            style="width:100%; height:100%; border:none; display:block;"
+          ></iframe>
+        </div>
+        <p style="margin-top:12px; font-size:12px; color:rgba(255,255,255,0.45); line-height:1.6;">
+          Watch this short demo to learn how to get the most out of Flap Clock — including alarms, ambient sounds, radio, themes, and more.
+        </p>
       </div>
     </div>
 
