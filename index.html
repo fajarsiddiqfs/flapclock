@@ -2122,92 +2122,21 @@
     <!-- ── TAB: Demo ── -->
     <div class="tab-panel" id="tab-demo">
       <div class="setting-section">
-        <div style="margin-top:4px; border-radius:12px; overflow:hidden; background:#000; aspect-ratio:16/9; width:100%; position:relative;">
+        <div class="setting-label">How to Use Flap Clock</div>
+        <div style="margin-top:10px; border-radius:12px; overflow:hidden; background:#000; aspect-ratio:16/9; width:100%;">
           <iframe
-            id="demo-yt-iframe"
-            src="https://www.youtube.com/embed/qfy5yXSgV9k?enablejsapi=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&fs=0&color=white"
+            src="https://www.youtube.com/embed/qfy5yXSgV9k"
             title="Flap Clock Demo"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
-            style="width:100%; height:100%; border:none; display:block; position:absolute; inset:0;"
+            style="width:100%; height:100%; border:none; display:block;"
           ></iframe>
-          <!-- Custom controls overlay -->
-          <div id="demo-controls" style="position:absolute; bottom:0; left:0; right:0; padding:12px 14px; display:flex; align-items:center; gap:10px; background:linear-gradient(transparent,rgba(0,0,0,0.55)); opacity:0; transition:opacity .25s; pointer-events:none;">
-            <button id="demo-play-btn" style="background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; color:#fff; pointer-events:all;" aria-label="Play/Pause">
-              <svg id="demo-icon-play" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-              <svg id="demo-icon-pause" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-            </button>
-            <div style="flex:1;"></div>
-            <button id="demo-fs-btn" style="background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; color:#fff; pointer-events:all;" aria-label="Fullscreen">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-            </button>
-          </div>
-          <!-- Click area to toggle play/pause -->
-          <div id="demo-click-area" style="position:absolute; inset:0; cursor:pointer;"></div>
         </div>
+        <p style="margin-top:12px; font-size:12px; color:rgba(255,255,255,0.45); line-height:1.6;">
+          Watch this short demo to learn how to get the most out of Flap Clock —  desktop and mobile featuring time, date, location, weather, timezone, alarms, ambient sounds, radio, and embed support in a clean fullscreen design.
+        </p>
       </div>
     </div>
-    <script>
-    (function(){
-      var wrapper = document.querySelector('#tab-demo .setting-section > div');
-      var controls = document.getElementById('demo-controls');
-      var playBtn  = document.getElementById('demo-play-btn');
-      var iconPlay  = document.getElementById('demo-icon-play');
-      var iconPause = document.getElementById('demo-icon-pause');
-      var fsBtn    = document.getElementById('demo-fs-btn');
-      var clickArea = document.getElementById('demo-click-area');
-      var iframe   = document.getElementById('demo-yt-iframe');
-      var isPlaying = false;
-      var hideTimer;
-
-      function showControls() {
-        controls.style.opacity = '1';
-        controls.style.pointerEvents = 'all';
-        clearTimeout(hideTimer);
-        hideTimer = setTimeout(function(){ controls.style.opacity='0'; controls.style.pointerEvents='none'; }, 2500);
-      }
-
-      function postCmd(cmd) {
-        iframe.contentWindow.postMessage(JSON.stringify({event:'command', func:cmd, args:[]}), '*');
-      }
-
-      function setPlaying(state) {
-        isPlaying = state;
-        iconPlay.style.display  = state ? 'none' : 'block';
-        iconPause.style.display = state ? 'block' : 'none';
-      }
-
-      window.addEventListener('message', function(e) {
-        try {
-          var d = JSON.parse(e.data);
-          if (d.event === 'onStateChange') {
-            setPlaying(d.info === 1);
-          }
-        } catch(err){}
-      });
-
-      playBtn.addEventListener('click', function(e){
-        e.stopPropagation();
-        postCmd(isPlaying ? 'pauseVideo' : 'playVideo');
-        showControls();
-      });
-
-      clickArea.addEventListener('click', function(){
-        postCmd(isPlaying ? 'pauseVideo' : 'playVideo');
-        showControls();
-      });
-
-      wrapper.addEventListener('mousemove', showControls);
-      wrapper.addEventListener('mouseenter', showControls);
-
-      fsBtn.addEventListener('click', function(e){
-        e.stopPropagation();
-        var el = wrapper;
-        var req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-        if (req) req.call(el);
-      });
-    })();
-    </script>
 
     <!-- ── TAB: Calendar ── -->
     <div class="tab-panel" id="tab-calendar">
