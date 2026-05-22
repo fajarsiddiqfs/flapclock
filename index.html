@@ -1822,40 +1822,51 @@
     /* ── Countdown ───────────────────────────────────────── */
     .countdown-inputs {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       margin-bottom: 12px;
+      align-items: center;
+    }
+    .cd-unit {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
     }
     .cd-input {
       width: 100%;
-      padding: 10px 12px;
-      border-radius: 12px;
+      padding: 10px 4px;
+      border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.10);
       background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.80);
+      color: #fff;
       font-family: "Inter", sans-serif;
-      font-size: 22px;
-      font-weight: 300;
+      font-size: 20px;
+      font-weight: 600;
       text-align: center;
-      letter-spacing: 0.06em;
-      box-sizing: border-box;
     }
     .cd-input:focus { outline: none; border-color: rgba(255,255,255,0.25); }
-    .cd-input::placeholder { color: rgba(255,255,255,0.22); }
     body.light-mode .cd-input {
       background: rgba(0,0,0,0.05);
       border-color: rgba(0,0,0,0.12);
-      color: rgba(0,0,0,0.60);
+      color: #111;
     }
-    body.light-mode .cd-input::placeholder { color: rgba(0,0,0,0.22); }
-    .cd-hint {
-      font-size: 10px;
+    .cd-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.28);
       font-family: "Inter", sans-serif;
-      color: rgba(255,255,255,0.22);
-      text-align: center;
-      letter-spacing: 0.04em;
     }
-    body.light-mode .cd-hint { color: rgba(0,0,0,0.30); }
+    body.light-mode .cd-label { color: rgba(0,0,0,0.35); }
+    .cd-colon {
+      font-size: 20px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 14px;
+    }
+    body.light-mode .cd-colon { color: rgba(0,0,0,0.25); }
     .cd-display {
       text-align: center;
       font-family: "Inter", sans-serif;
@@ -2076,10 +2087,21 @@
 
     <!-- ── TAB: Countdown ── -->
     <div class="tab-panel" id="tab-countdown">
-      <div class="setting-label" style="margin-bottom:12px">Set Timer</div>
       <div class="countdown-inputs" id="cd-inputs">
-        <input class="cd-input" type="text" id="cd-time" placeholder="0:05:00" inputmode="numeric">
-        <div class="cd-hint">h:mm:ss &nbsp;·&nbsp; mm:ss &nbsp;·&nbsp; or seconds</div>
+        <div class="cd-unit">
+          <input class="cd-input" type="number" id="cd-h" min="0" max="23" value="0" placeholder="00">
+          <span class="cd-label">HH</span>
+        </div>
+        <div class="cd-colon">:</div>
+        <div class="cd-unit">
+          <input class="cd-input" type="number" id="cd-m" min="0" max="59" value="5" placeholder="00">
+          <span class="cd-label">MM</span>
+        </div>
+        <div class="cd-colon">:</div>
+        <div class="cd-unit">
+          <input class="cd-input" type="number" id="cd-s" min="0" max="59" value="0" placeholder="00">
+          <span class="cd-label">SS</span>
+        </div>
       </div>
       <div class="cd-display" id="cd-display">00:05:00</div>
       <div class="cd-btns">
@@ -3430,18 +3452,13 @@
     document.getElementById('cd-start').textContent = cdRemain > 0 ? 'Resume' : 'Start';
   }
 
-  function cdParseInput() {
-    const raw = (document.getElementById('cd-time').value || '').trim();
-    const parts = raw.split(':').map(p => parseInt(p) || 0);
-    if (parts.length === 1) return parts[0];                          // seconds only
-    if (parts.length === 2) return parts[0] * 60 + parts[1];         // mm:ss
-    return parts[0] * 3600 + parts[1] * 60 + parts[2];               // h:mm:ss
-  }
-
   document.getElementById('cd-start').addEventListener('click', () => {
     if (cdRunning) { cdStop(); return; }
     if (cdRemain === 0) {
-      cdTotal = cdParseInput();
+      const h = parseInt(document.getElementById('cd-h').value) || 0;
+      const m = parseInt(document.getElementById('cd-m').value) || 0;
+      const s = parseInt(document.getElementById('cd-s').value) || 0;
+      cdTotal = h * 3600 + m * 60 + s;
       cdRemain = cdTotal;
       if (cdRemain === 0) return;
     }
@@ -3472,13 +3489,17 @@
     cdUpdateDisplay();
   });
 
-  // Sync display when input changes
-  document.getElementById('cd-time').addEventListener('input', () => {
-    if (!cdRunning && cdRemain === 0) {
-      const secs = cdParseInput();
-      document.getElementById('cd-display').textContent = cdFormat(secs);
-      document.getElementById('cd-display').classList.remove('done');
-    }
+  // Sync display when inputs change
+  ['cd-h','cd-m','cd-s'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      if (!cdRunning && cdRemain === 0) {
+        const h = parseInt(document.getElementById('cd-h').value) || 0;
+        const m = parseInt(document.getElementById('cd-m').value) || 0;
+        const s = parseInt(document.getElementById('cd-s').value) || 0;
+        document.getElementById('cd-display').textContent = cdFormat(h*3600 + m*60 + s);
+        document.getElementById('cd-display').classList.remove('done');
+      }
+    });
   });
 
   /* ══════════════════════════════════════════════════════
