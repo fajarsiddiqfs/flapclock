@@ -208,11 +208,11 @@
     .meta { color: var(--meta-col); transition: color .35s; }
     .footer-left, .footer-right, .footer-right a { color: var(--footer-col); transition: color .35s; }
 
-    /* AM/PM */
+    /* AM/PM — pinned to top-left corner of the hour card */
     .ampm-badge {
       position: absolute;
-      top:  clamp(22px, 34%, 52px);
-      left: clamp(18px, 12%, 32px);
+      top:  clamp(5px, 6%, 10px);
+      left: clamp(6px, 7%, 12px);
       z-index: 30;
       font-family: 'Inter', sans-serif;
       font-size: var(--ampm-fs, 13px);
