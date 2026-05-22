@@ -4539,18 +4539,18 @@
         var lx = ac.x + 34;
         var ly = ac.y - 32;
 
-        /* Arrow tail: from the left edge of the label */
-        var sx = lx;
-        var sy = ly + 4;
+        /* Arrow tail: starts below the label text */
+        var sx = lx + 20;
+        var sy = ly + 14;
 
-        /* Arrow tip: just to the right of the badge centre */
+        /* Arrow tip: just above-right of badge centre */
         var tipGap = 10;
         var ex = ac.x + tipGap;
-        var ey = ac.y + tipGap;
+        var ey = ac.y - tipGap;
 
-        /* Control point: inner curve — bows inward between label and badge */
-        var mx = (sx + ex) / 2;
-        var my = (sy + ey) / 2 - 18;
+        /* Control point: drops down first then swings left to badge */
+        var mx = sx - 10;
+        var my = ey - 10;
 
         var p = document.createElementNS(NS1, 'path');
         p.setAttribute('d', 'M'+sx+' '+sy+' Q'+mx+' '+my+' '+ex+' '+ey);
