@@ -3004,9 +3004,10 @@
   }
   function reverseGeocode(lat, lon) {
     fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=14&addressdetails=1`,
-          { headers: { 'Accept-Language': 'en' } })
-      .then(r => r.json())
+          { headers: { 'Accept-Language': 'en', 'User-Agent': 'FlapClock/1.0 (https://flapclock.com)' } })
+      .then(r => { if (!r.ok) throw new Error('nominatim'); return r.json(); })
       .then(d => {
+        if (d.error) throw new Error('nominatim-error');
         const a = d.address || {};
         const suburb   = a.suburb || a.neighbourhood || a.quarter || '';
         const city     = a.city || a.town || a.village || a.municipality || a.county || '';
@@ -3023,26 +3024,44 @@
       .catch(() => setLoc('Location Unavailable'));
   }
   function ipFallback() {
+    // Try ipapi.co first, fall back to ip-api.com if rate-limited or errored
     fetch('https://ipapi.co/json/')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('ipapi'); return r.json(); })
       .then(d => {
+        if (d.error || d.reason) throw new Error('ipapi-error');
         const city    = d.city || '';
         const region  = d.region || '';
         const country = d.country_code || '';
         let loc = '';
         if (city && region && country)     loc = `${city}  ·  ${region}  ·  ${country}`;
         else if (city && country)          loc = `${city}  ·  ${country}`;
-        else loc = 'Location Unavailable';
+        else throw new Error('ipapi-empty');
         setLoc(loc);
         if (d.latitude && d.longitude) fetchWeather(d.latitude, d.longitude);
       })
-      .catch(() => setLoc('Location Unavailable'));
+      .catch(() => {
+        // Second IP fallback: freeipapi.com (free, HTTPS, no key needed)
+        fetch('https://freeipapi.com/api/json')
+          .then(r => { if (!r.ok) throw new Error('freeipapi'); return r.json(); })
+          .then(d => {
+            const city    = d.cityName || '';
+            const region  = d.regionName || '';
+            const country = d.countryCode || '';
+            let loc = '';
+            if (city && region && country)     loc = `${city}  ·  ${region}  ·  ${country}`;
+            else if (city && country)          loc = `${city}  ·  ${country}`;
+            else loc = 'Location Unavailable';
+            setLoc(loc);
+            if (d.latitude && d.longitude) fetchWeather(d.latitude, d.longitude);
+          })
+          .catch(() => setLoc('Location Unavailable'));
+      });
   }
   if ('geolocation' in navigator) {
     navigator.geolocation.getCurrentPosition(
       p  => { reverseGeocode(p.coords.latitude, p.coords.longitude); fetchWeather(p.coords.latitude, p.coords.longitude); },
       () => ipFallback(),
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 }
     );
   } else { ipFallback(); }
 
@@ -3296,25 +3315,40 @@
      WEATHER
   ══════════════════════════════════════════════════════ */
   function fetchWeather(lat, lon) {
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=celsius`)
-      .then(r => r.json())
+    // Detect locale preference for °F vs °C (US uses °F)
+    const useFahrenheit = ['en-US','en-PR','en-GU','en-VI','en-AS','en-MP'].includes(navigator.language);
+    const tempUnit = useFahrenheit ? 'fahrenheit' : 'celsius';
+    const unitSymbol = useFahrenheit ? '°F' : '°C';
+
+    // Use both current (new) and current_weather (legacy) params for maximum compatibility
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,weather_code,wind_speed_10m` +
+      `&current_weather=true&temperature_unit=${tempUnit}&wind_speed_unit=kmh&timezone=auto`;
+
+    fetch(url)
+      .then(r => { if (!r.ok) throw new Error('weather-http'); return r.json(); })
       .then(d => {
-        const w = d.current_weather;
-        if (!w) return;
-        const temp = Math.round(w.temperature);
-        const code = w.weathercode;
+        // Prefer new `current` block, fall back to legacy `current_weather`
+        let temp, code;
+        if (d.current && d.current.temperature_2m != null) {
+          temp = Math.round(d.current.temperature_2m);
+          code = d.current.weather_code ?? d.current.weathercode ?? 0;
+        } else if (d.current_weather) {
+          temp = Math.round(d.current_weather.temperature);
+          code = d.current_weather.weathercode ?? 0;
+        } else {
+          return; // no data — hide weather silently
+        }
         const icon = weatherIcon(code);
-        const desc = weatherDesc(code);
         document.getElementById('weather-sep').style.display = '';
         const iconWrap = document.getElementById('weather-icon-wrap');
         iconWrap.style.display = 'inline-flex';
-        const iconEl = document.getElementById('weather-icon-el');
-        iconEl.innerHTML = icon;
+        document.getElementById('weather-icon-el').innerHTML = icon;
         const span = document.getElementById('weather-span');
         span.style.display = '';
         span.textContent = `${temp}°`;
       })
-      .catch(() => {});
+      .catch(() => {}); // fail silently — weather is non-critical
   }
 
   function applyWeatherLayout() { /* unified row — nothing to toggle */ }
