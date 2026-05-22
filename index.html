@@ -4528,32 +4528,29 @@
          they follow the clock no matter the screen width.
       ══════════════════════════════════════════════════════ */
 
-      /* 1. "Click Me!" — label below-right of AM badge, arrow curves up-left to badge */
+      /* 1. "Click Me!" — label above-left of AM badge, arrow goes right-down to badge */
       (function () {
         var g1  = document.getElementById('hint-ampm');
         g1.innerHTML = '';
         var col = inkColor();
         var NS1 = 'http://www.w3.org/2000/svg';
 
-        /* Label: sits below and to the right of the badge, clamped to viewport */
-        var lx = Math.min(ac.x + 30, vw - 80);
-        var ly = ac.y + 52;
+        /* Label: sits above and to the left of the badge */
+        var lx = ac.x - 55;
+        var ly = ac.y - 28;
 
-        /* Arrow tail: starts from above-left edge of label text */
-        var sx = lx + 10;
-        var sy = ly - 14;
+        /* Arrow tail: from the right end of the label, at label baseline */
+        var sx = lx + 58;
+        var sy = ly;
 
-        /* Arrow tip: just outside the AM badge (small tipGap for mobile) */
-        var tipGap = 18;
-        var dx = ac.x - sx, dy = ac.y - sy;
-        var dist = Math.sqrt(dx*dx + dy*dy);
-        var nx = dx/dist, ny = dy/dist;
-        var ex = ac.x - nx * tipGap;
-        var ey = ac.y - ny * tipGap;
+        /* Arrow tip: just above the badge centre — arrow arrives from upper-left going right-down */
+        var tipGap = 10;
+        var ex = ac.x - tipGap;
+        var ey = ac.y - tipGap;
 
-        /* Gentle curve control point */
-        var mx = (sx + ex) / 2 + ny * 14;
-        var my = (sy + ey) / 2 - nx * 14;
+        /* Control point curves the line rightward then downward */
+        var mx = sx + (ex - sx) * 0.7;
+        var my = sy + (ey - sy) * 0.3;
 
         var p = document.createElementNS(NS1, 'path');
         p.setAttribute('d', 'M'+sx+' '+sy+' Q'+mx+' '+my+' '+ex+' '+ey);
@@ -4563,7 +4560,7 @@
         p.setAttribute('stroke-linecap', 'round');
         g1.appendChild(p);
 
-        /* Arrowhead pointing at badge */
+        /* Arrowhead pointing right-down at badge */
         var headLen = 7;
         var ang = Math.atan2(ey - my, ex - mx);
         [ang - 0.45, ang + 0.45].forEach(function (a) {
