@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>MyDash</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: #000;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 2vh 5vw 3vh;
+  position: relative;
+  overflow: hidden;
+}
+
+:fullscreen #app, :-webkit-full-screen #app {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ─── PRAYER / INFO ROW ─── */
+#row-info {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 1.2vh 0;
+  gap: 0;
+}
+
+/* Meta group: day / date */
+#info-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1vh;
+  padding: 0.3vh 0.3vw;
+  border-left: 1px solid rgba(255,255,255,0.06);
+}
+
+#date-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1vh;
+}
+
+#day-name {
+  font-size: clamp(0.6rem, 1.5vw, 1.4rem);
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+}
+#full-date {
+  font-size: clamp(1rem, 2.5vw, 2.4rem);
+  font-weight: 900;
+  color: #fff;
+  white-space: nowrap;
+  letter-spacing: -0.5px;
+}
+.sep { display: none; }
+
+/* Prayer items */
+.prayer-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1vh;
+  padding: 0.3vh 0.3vw;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+}
+.prayer-item:last-child { border-right: none; }
+
+.prayer-name {
+  font-size: clamp(0.6rem, 1.5vw, 1.4rem);
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.prayer-time {
+  font-size: clamp(1rem, 2.5vw, 2.4rem);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.prayer-item.active .prayer-name { color: #fff; }
+.prayer-item.active .prayer-time { color: #fff; }
+.prayer-item.active::before {
+  content: '';
+  position: absolute;
+  top: -1.2vh; left: 50%;
+  transform: translateX(-50%);
+  width: 3px; height: 3px;
+  border-radius: 50%; background: #fff;
+}
+.prayer-item.next .prayer-time  { color: rgba(255,255,255,0.75); }
+.prayer-item.next .prayer-name  { color: rgba(255,255,255,0.65); }
+.prayer-item.past .prayer-time  { color: rgba(255,255,255,0.35); }
+.prayer-item.past .prayer-name  { color: rgba(255,255,255,0.35); }
+
+/* ─── CLOCK ─── */
+#row-time {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 0;
+  max-height: 55vh;
+}
+#clock-wrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.5vw;
+  line-height: 1;
+  overflow: hidden;
+  max-width: 100%;
+  max-height: 100%;
+}
+#time {
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  font-size: 30vw;
+  display: block;
+}
+#ampm {
+  font-weight: 900;
+  color: #fff;
+  white-space: nowrap;
+  font-size: 5vw;
+  letter-spacing: -0.05em;
+  padding-top: 1vw;
+}
+
+/* ─── RADIO ─── */
+#row-radio {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8vh;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 1.2vh;
+  margin-bottom: 0.5vh;
+}
+#radio-main {
+  display: flex;
+  align-items: center;
+}
+#radio-left {
+  display: flex;
+  align-items: center;
+  gap: 1.8vw;
+  flex-shrink: 0;
+}
+#play-btn {
+  width: clamp(36px,5vw,62px); height: clamp(36px,5vw,62px);
+  border-radius: 50%; border: none; background: #fff; color: #000;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background 0.15s, transform 0.1s;
+}
+#play-btn:hover { background: rgba(255,255,255,0.85); }
+#play-btn:active { transform: scale(0.94); }
+#play-btn svg { width: 36%; height: 36%; }
+#station-label { display: flex; flex-direction: column; gap: 0.1vh; }
+#live-badge {
+  display: flex; align-items: center; gap: 5px;
+  font-size: clamp(0.55rem,1vw,0.9rem); font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase; color: #fff;
+}
+.live-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: #fff;
+  animation: blink 2s ease infinite; flex-shrink: 0;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.12} }
+#station-name {
+  font-size: clamp(1rem,3vw,2.8rem); font-weight: 900;
+  letter-spacing: -1px; line-height: 1; color: #fff; white-space: nowrap;
+}
+#stream-status {
+  font-size: clamp(0.6rem,1.1vw,1rem); font-weight: 600;
+  color: rgba(255,255,255,0.6); letter-spacing: 0.5px; transition: color 0.3s;
+}
+#stream-status.on { color: #fff; }
+
+/* Station buttons */
+#station-toggle {
+  margin-left: auto;
+  display: flex; gap: 1vw; align-items: center; flex-wrap: wrap; justify-content: flex-end;
+}
+.st-btn {
+  display: flex; align-items: center; gap: 0.5vw;
+  padding: clamp(4px,0.8vh,10px) clamp(8px,1.2vw,16px);
+  border-radius: 50px; border: 1.5px solid rgba(255,255,255,0.11);
+  background: transparent; color: rgba(255,255,255,0.3);
+  font-family: 'Inter', sans-serif; font-size: clamp(0.55rem,0.95vw,0.9rem);
+  font-weight: 800; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.st-btn svg { width: clamp(10px,1.2vw,16px); height: clamp(10px,1.2vw,16px); flex-shrink: 0; }
+.st-btn:hover { color: #fff; border-color: rgba(255,255,255,0.35); }
+.st-btn.active { background: #fff; border-color: #fff; color: #000; }
+
+/* Volume */
+#vol-row { display: flex; align-items: center; gap: 1.5vw; }
+#vol-row svg { width: clamp(12px,1.5vw,20px); height: clamp(12px,1.5vw,20px); color: rgba(255,255,255,0.22); flex-shrink: 0; }
+#vol-slider {
+  flex: 1; -webkit-appearance: none; height: 3px;
+  background: rgba(255,255,255,0.11); border-radius: 2px; cursor: pointer; outline: none;
+}
+#vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: clamp(14px,1.8vw,22px); height: clamp(14px,1.8vw,22px);
+  border-radius: 50%; background: #fff; cursor: pointer;
+}
+#vol-num { font-size: clamp(0.55rem,0.9vw,0.85rem); font-weight: 800; color: rgba(255,255,255,0.25); min-width: 3ch; text-align: right; }
+
+/* Fullscreen */
+#fs-btn {
+  position: absolute; bottom: 18px; right: 20px;
+  width: clamp(34px,4vw,48px); height: clamp(34px,4vw,48px);
+  border-radius: 11px; border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
+  color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  z-index: 9999; transition: background 0.2s, border-color 0.2s;
+}
+#fs-btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.5); }
+#fs-btn svg { width: 44%; height: 44%; }
+#fs-btn svg path { stroke: #ffffff !important; }
+
+/* ─── MOBILE (portrait phones) ─── */
+@media (max-width: 500px) {
+  #app { padding: 2vh 4vw 2.5vh; }
+
+  #row-info { padding: 1vh 0; }
+
+  .prayer-name, #day-name {
+    font-size: clamp(0.5rem, 2.5vw, 0.75rem);
+    letter-spacing: 1px;
+  }
+  .prayer-time, #full-date {
+    font-size: clamp(0.85rem, 4vw, 1.2rem);
+  }
+
+  #time { font-size: 26vw; }
+  #ampm { font-size: 7vw; padding-bottom: 3vw; }
+
+  #station-name { font-size: clamp(0.9rem, 5vw, 1.5rem); }
+  #live-badge { font-size: 0.55rem; letter-spacing: 2px; }
+  #stream-status { font-size: 0.6rem; }
+
+  #station-toggle { gap: 1.5vw; }
+  .st-btn {
+    padding: 5px 8px;
+    font-size: 0.6rem;
+    gap: 3px;
+  }
+  .st-btn svg { width: 11px; height: 11px; }
+
+  #play-btn { width: 42px; height: 42px; }
+  #radio-left { gap: 3vw; }
+
+  #vol-row svg { width: 14px; height: 14px; }
+  #vol-num { font-size: 0.6rem; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SINGLE INFO ROW: Prayers left | Date/Day right -->
+  <div id="row-info">
+
+    <div class="prayer-item" id="p-subuh">
+      <div class="prayer-name">Subuh</div>
+      <div class="prayer-time" id="pt-subuh">—:——</div>
+    </div>
+    <div class="prayer-item" id="p-zohor">
+      <div class="prayer-name">Zohor</div>
+      <div class="prayer-time" id="pt-zohor">—:——</div>
+    </div>
+    <div class="prayer-item" id="p-asar">
+      <div class="prayer-name">Asar</div>
+      <div class="prayer-time" id="pt-asar">—:——</div>
+    </div>
+    <div class="prayer-item" id="p-maghrib">
+      <div class="prayer-name">Maghrib</div>
+      <div class="prayer-time" id="pt-maghrib">—:——</div>
+    </div>
+    <div class="prayer-item" id="p-isyak">
+      <div class="prayer-name">Isyak</div>
+      <div class="prayer-time" id="pt-isyak">—:——</div>
+    </div>
+
+    <div id="info-meta">
+      <div id="date-stack">
+        <div id="day-name">—</div>
+        <div id="full-date">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIG CLOCK -->
+  <div id="row-time">
+    <div id="clock-wrap">
+      <div id="time">00:00</div>
+      <div id="ampm">AM</div>
+    </div>
+  </div>
+
+  <!-- RADIO -->
+  <div id="row-radio">
+    <div id="radio-main">
+      <div id="radio-left">
+        <button id="play-btn" onclick="togglePlay()">
+          <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <polygon points="6 3 20 12 6 21 6 3"/>
+          </svg>
+        </button>
+        <div id="station-label">
+          <div id="live-badge"><span class="live-dot"></span> Live</div>
+          <div id="station-name">Quran FM</div>
+          <div id="stream-status">Tap play to begin</div>
+        </div>
+      </div>
+      <div id="station-toggle">
+        <button class="st-btn active" id="btn-0" onclick="switchStation(0)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          Quran FM
+        </button>
+        <button class="st-btn" id="btn-1" onclick="switchStation(1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          SomaFM
+        </button>
+        <button class="st-btn" id="btn-2" onclick="switchStation(2)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+          Lofi
+        </button>
+        <button class="st-btn" id="btn-3" onclick="switchStation(3)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.4"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.4"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
+          Jazz
+        </button>
+        <button class="st-btn" id="btn-4" onclick="switchStation(4)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22V12"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M12 12a5 5 0 0 0 5-5c0-2-1-3.9-2.5-5C13.4 3.6 12 6 12 6s-1.4-2.4-2.5-4C8 3.1 7 5 7 7a5 5 0 0 0 5 5z"/></svg>
+          Nature
+        </button>
+      </div>
+    </div>
+    <div id="vol-row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
+      <input type="range" id="vol-slider" min="0" max="100" value="85" oninput="setVol(this.value)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      <div id="vol-num">85</div>
+    </div>
+  </div>
+
+  <button id="fs-btn" onclick="toggleFS()">
+    <svg id="fs-icon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+      <path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+    </svg>
+  </button>
+
+</div>
+
+<audio id="aud" preload="none"></audio>
+
+<script>
+const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ── CLOCK ──
+function fitClock() {
+  var el = document.getElementById('time');
+  var container = document.getElementById('row-time');
+  var w = container.clientWidth * 0.82, h = container.clientHeight;
+  var lo = 10, hi = 2000, fs = 400;
+  for (var i = 0; i < 22; i++) {
+    fs = (lo + hi) / 2;
+    el.style.fontSize = fs + 'px';
+    if (el.scrollWidth <= w && el.offsetHeight <= h) lo = fs; else hi = fs;
+  }
+  el.style.fontSize = lo + 'px';
+}
+
+function tick() {
+  var n = new Date();
+  var h = n.getHours();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  var h12 = h % 12 || 12;
+  var timeStr = String(h12).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  var el = document.getElementById('time');
+  if (el.textContent !== timeStr) { el.textContent = timeStr; fitClock(); }
+  document.getElementById('ampm').textContent = ampm;
+  document.getElementById('day-name').textContent  = DAYS[n.getDay()].toUpperCase();
+  document.getElementById('full-date').textContent = String(n.getDate()).padStart(2,'0') + '/' + String(n.getMonth()+1).padStart(2,'0');
+  highlightPrayer();
+}
+tick();
+setInterval(tick, 1000);
+
+// ── WEATHER / GEO ──
+async function fetchWeather(lat, lon) {
+  try {
+    var r = await fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m&timezone=auto');
+    var d = await r.json();
+    document.getElementById('wx-temp').textContent = Math.round(d.current.temperature_2m) + '°C';
+  } catch(e) {}
+}
+async function fetchLocName(lat, lon) {
+  try {
+    var r = await fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json');
+    var d = await r.json();
+    var a = d.address;
+    var parts = [a.suburb||a.village||a.town||a.city||a.county, a.state].filter(Boolean);
+    document.getElementById('loc-text').textContent = parts.join(', ');
+  } catch(e) {}
+}
+
+var _lat = 2.9980, _lon = 101.5850;
+function initGeo() {
+  if (!navigator.geolocation) {
+    fetchPrayerTimes(_lat, _lon); return;
+  }
+  navigator.geolocation.getCurrentPosition(function(p) {
+    _lat = p.coords.latitude; _lon = p.coords.longitude;
+    fetchPrayerTimes(_lat, _lon);
+  }, function() {
+    fetchPrayerTimes(_lat, _lon);
+  }, { timeout: 10000, enableHighAccuracy: true });
+}
+
+// ── PRAYER TIMES ──
+var prayerTimes = {};
+async function fetchPrayerTimes(lat, lon) {
+  try {
+    var today = new Date();
+    var url = 'https://api.aladhan.com/v1/timings/' + Math.floor(today.getTime()/1000)
+            + '?latitude=' + lat + '&longitude=' + lon + '&method=3';
+    var r = await fetch(url);
+    var d = await r.json();
+    var t = d.data.timings;
+    prayerTimes = { subuh: t.Fajr, zohor: t.Dhuhr, asar: t.Asr, maghrib: t.Maghrib, isyak: t.Isha };
+    document.getElementById('pt-subuh').textContent   = fmtTime(t.Fajr);
+    document.getElementById('pt-zohor').textContent   = fmtTime(t.Dhuhr);
+    document.getElementById('pt-asar').textContent    = fmtTime(t.Asr);
+    document.getElementById('pt-maghrib').textContent = fmtTime(t.Maghrib);
+    document.getElementById('pt-isyak').textContent   = fmtTime(t.Isha);
+    highlightPrayer();
+  } catch(e) {
+    var fb = { subuh:'05:50', zohor:'13:09', asar:'16:29', maghrib:'19:22', isyak:'20:33' };
+    prayerTimes = fb;
+    document.getElementById('pt-subuh').textContent   = fb.subuh;
+    document.getElementById('pt-zohor').textContent   = fb.zohor;
+    document.getElementById('pt-asar').textContent    = fb.asar;
+    document.getElementById('pt-maghrib').textContent = fb.maghrib;
+    document.getElementById('pt-isyak').textContent   = fb.isyak;
+    highlightPrayer();
+  }
+}
+function fmtTime(s) {
+  if (!s) return '—:——';
+  var p = s.split(':');
+  return String(parseInt(p[0])).padStart(2,'0') + ':' + p[1];
+}
+function toMins(s) { var p = s.split(':'); return parseInt(p[0])*60 + parseInt(p[1]); }
+function highlightPrayer() {
+  if (!prayerTimes || !prayerTimes.subuh) return;
+  var cur = new Date().getHours()*60 + new Date().getMinutes();
+  var order = ['subuh','zohor','asar','maghrib','isyak'];
+  var mins  = order.map(function(k){ return toMins(prayerTimes[k]); });
+  var activeIdx = -1;
+  for (var i = mins.length-1; i >= 0; i--) { if (cur >= mins[i]) { activeIdx = i; break; } }
+  var nextIdx = activeIdx === -1 ? 0 : (activeIdx+1 < order.length ? activeIdx+1 : -1);
+  order.forEach(function(k,i) {
+    var el = document.getElementById('p-'+k);
+    el.className = 'prayer-item';
+    if (i === activeIdx) el.classList.add('active');
+    else if (i === nextIdx) el.classList.add('next');
+    else if (activeIdx !== -1 && i < activeIdx) el.classList.add('past');
+  });
+}
+
+// ── RADIO ──
+var STATIONS = [
+  { name:'Quran FM',   url:'https://qurango.net/radio/tarateel' },
+  { name:'SomaFM',     url:'https://ice1.somafm.com/dronezone-128-mp3' },
+  { name:'Lofi',       url:'https://streams.fluxfm.de/Chillhop/mp3-320/audio/' },
+  { name:'Jazz Radio', url:'https://streaming.radio.co/s3f6a75f88/listen' },
+  { name:'Nature FM',  url:'https://ice4.somafm.com/deepspaceone-128-mp3' }
+];
+var stIdx = 0, isPlaying = false;
+var aud = document.getElementById('aud');
+
+function setStatus(txt, live) {
+  var el = document.getElementById('stream-status');
+  el.textContent = txt; el.className = live ? 'on' : '';
+}
+function updateUI() {
+  document.getElementById('station-name').textContent = STATIONS[stIdx].name;
+  document.querySelectorAll('.st-btn').forEach(function(b,i){ b.classList.toggle('active', i===stIdx); });
+}
+function startStream() {
+  setStatus('Connecting...', false);
+  aud.src = STATIONS[stIdx].url;
+  aud.volume = document.getElementById('vol-slider').value / 100;
+  aud.load();
+  aud.play().catch(function(){ setStatus('Could not connect', false); isPlaying=false; setPlayIcon(false); });
+}
+function setPlayIcon(p) {
+  document.getElementById('play-icon').innerHTML = p
+    ? '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>'
+    : '<polygon points="6 3 20 12 6 21 6 3"/>';
+}
+function togglePlay() {
+  if (!isPlaying) { isPlaying=true; setPlayIcon(true); startStream(); }
+  else { isPlaying=false; aud.pause(); setPlayIcon(false); setStatus('Paused', false); }
+}
+function switchStation(i) {
+  stIdx = i; updateUI(); setStatus('Tap play to begin', false);
+  if (isPlaying) startStream();
+}
+function setVol(v) { aud.volume = v/100; document.getElementById('vol-num').textContent = v; }
+
+aud.addEventListener('playing', function(){ setStatus('Playing Live', true); });
+aud.addEventListener('waiting', function(){ setStatus('Buffering...', false); });
+aud.addEventListener('error',   function(){ setStatus('Stream error', false); isPlaying=false; setPlayIcon(false); });
+aud.addEventListener('stalled', function(){ setStatus('Reconnecting...', false); setTimeout(function(){ if(isPlaying) startStream(); }, 3000); });
+
+// ── FULLSCREEN ──
+var FSE = '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>';
+var FSS = '<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>';
+function setFSIcon(paths) {
+  var svg = document.getElementById('fs-icon');
+  svg.innerHTML = paths;
+  svg.setAttribute('stroke','#ffffff');
+}
+function toggleFS() {
+  if (!document.fullscreenElement) {
+    (document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen).call(document.documentElement);
+    setFSIcon(FSS);
+  } else {
+    (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    setFSIcon(FSE);
+  }
+}
+function fixAppHeight() {
+  var app = document.getElementById('app');
+  app.style.height = window.innerHeight + 'px';
+  setTimeout(fitClock, 50);
+}
+document.addEventListener('fullscreenchange', function(){
+  if (!document.fullscreenElement) setFSIcon(FSE);
+  fixAppHeight();
+});
+window.addEventListener('resize', fixAppHeight);
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', function(e) {
+  if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); togglePlay(); }
+});
+
+// ── INIT ──
+initGeo();
+updateUI();
+setTimeout(fitClock, 100);
+</script>
+</body>
+</html>
