@@ -10,17 +10,19 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #e8e8e8;
-    --display-bg: #f0f0f0;
-    --display-shadow: #aaa;
+    --bg: #ffffff;
+    --display-bg: #ffffff;
+    --display-shadow: none;
     --seg-on: #111;
     --seg-off: rgba(0,0,0,0.07);
     --label: #555;
-    --btn-bg: rgba(0,0,0,0.12);
-    --btn-hover: rgba(0,0,0,0.22);
+    --btn-bg: rgba(0,0,0,0.08);
+    --btn-hover: rgba(0,0,0,0.15);
     --btn-text: #111;
-    --border: rgba(0,0,0,0.18);
-    --inner-glow: rgba(255,255,255,0.7);
+    --border: transparent;
+    --inner-glow: transparent;
+    --overlay-bg: rgba(0,0,0,0.55);
+    --modal-bg: #e8e8e8;
   }
 
   body.dark {
@@ -35,6 +37,8 @@
     --btn-text: #ddd;
     --border: rgba(255,255,255,0.12);
     --inner-glow: rgba(255,255,255,0.03);
+    --overlay-bg: rgba(0,0,0,0.75);
+    --modal-bg: #1a1a1a;
   }
 
   body {
@@ -45,9 +49,9 @@
     justify-content: center;
     font-family: 'Share Tech Mono', monospace;
     transition: background 0.4s ease;
+    overflow: hidden;
   }
 
-  /* subtle texture */
   body::before {
     content: '';
     position: fixed;
@@ -63,7 +67,6 @@
     background: var(--bg);
     border-radius: 0;
     padding: 4vh 4vw;
-    box-shadow: none;
     border: none;
     transition: background 0.4s;
     width: 100vw;
@@ -77,17 +80,15 @@
     background: var(--display-bg);
     border-radius: 20px;
     padding: 5vh 4vw;
-    box-shadow:
-      inset 4px 4px 16px var(--display-shadow),
-      inset -1px -1px 6px var(--inner-glow);
+    box-shadow: none;
     display: flex;
     align-items: center;
     gap: 0;
     transition: background 0.4s, box-shadow 0.4s;
     border: 1px solid var(--border);
+    flex: 1;
   }
 
-  /* ---- MAIN TIME ---- */
   .main-time {
     display: flex;
     align-items: center;
@@ -111,12 +112,6 @@
     padding-bottom: 4px;
   }
 
-  .digits-group {
-    display: flex;
-    align-items: center;
-    gap: clamp(4px, 0.8vw, 12px);
-  }
-
   .colon {
     display: flex;
     flex-direction: column;
@@ -133,15 +128,14 @@
     transition: background 0.4s, opacity 0.1s;
   }
 
-  /* ---- SVG SEGMENT DISPLAY ---- */
   .seg-digit {
     width: clamp(60px, 13vw, 200px);
     height: clamp(100px, 21vw, 320px);
   }
 
   .seg-digit.small {
-    width: clamp(30px, 5.5vw, 80px);
-    height: clamp(50px, 9vw, 130px);
+    width: clamp(24px, 4.5vw, 66px);
+    height: clamp(40px, 7.5vw, 108px);
   }
 
   .seg-digit .seg { fill: var(--seg-off); transition: fill 0.08s; }
@@ -159,7 +153,7 @@
   }
 
   .panel-section {
-    padding: 10px 0;
+    padding: clamp(8px, 1.2vh, 16px) 0;
   }
 
   .panel-section + .panel-section {
@@ -181,6 +175,15 @@
     align-items: center;
     gap: 4px;
   }
+
+  .alarm-icons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    opacity: 0.8;
+  }
+  .alarm-icons svg { width: clamp(12px, 1.5vw, 22px); height: auto; }
 
   /* ---- CONTROLS ---- */
   .controls {
@@ -210,21 +213,170 @@
 
   .ctrl-btn:hover { background: var(--btn-hover); }
   .ctrl-btn:active { transform: scale(0.97); }
-
   .ctrl-btn svg { width: clamp(14px, 1.4vw, 20px); height: clamp(14px, 1.4vw, 20px); flex-shrink: 0; }
 
-  /* snooze/bell icon */
-  .alarm-icons {
+  /* ---- SET ALARM BUTTON in panel ---- */
+  .set-alarm-btn {
+    margin-top: 8px;
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    color: var(--btn-text);
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(7px, 0.85vw, 11px);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
     display: flex;
-    gap: 8px;
-    margin-bottom: 4px;
-    opacity: 0.7;
+    align-items: center;
+    gap: 5px;
   }
-  .alarm-icons svg { width: clamp(12px, 1.5vw, 22px); height: auto; }
+  .set-alarm-btn:hover { background: var(--btn-hover); }
+  .set-alarm-btn svg { width: 11px; height: 11px; }
 
-  :fullscreen body, :-webkit-full-screen body, :-ms-fullscreen body {
-    min-height: 100vh;
+  /* ---- ALARM RING ANIMATION ---- */
+  @keyframes alarmPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
   }
+  .ringing .seg.on { animation: alarmPulse 0.5s ease-in-out infinite; }
+  .ringing-bell { animation: alarmPulse 0.5s ease-in-out infinite; }
+
+  /* ---- MODAL OVERLAY ---- */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-bg);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--modal-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: clamp(24px, 3vw, 48px) clamp(28px, 4vw, 60px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    min-width: clamp(280px, 36vw, 480px);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .modal-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(13px, 1.6vw, 22px);
+    font-weight: 700;
+    color: var(--seg-on);
+    letter-spacing: 0.12em;
+  }
+
+  .modal-time-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-time-input input[type="time"] {
+    background: var(--display-bg);
+    border: 1px solid var(--border);
+    color: var(--seg-on);
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(20px, 3vw, 40px);
+    font-weight: 700;
+    padding: 10px 16px;
+    border-radius: 8px;
+    outline: none;
+    width: 100%;
+    letter-spacing: 0.05em;
+    transition: border 0.2s;
+    color-scheme: light dark;
+  }
+  .modal-time-input input[type="time"]:focus {
+    border-color: var(--seg-on);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .modal-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(10px, 1vw, 13px);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 10px 20px;
+    border-radius: 7px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+  .modal-btn.primary {
+    background: var(--seg-on);
+    color: var(--bg);
+    border-color: var(--seg-on);
+  }
+  .modal-btn.primary:hover { opacity: 0.85; }
+  .modal-btn.secondary {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+  }
+  .modal-btn.secondary:hover { background: var(--btn-hover); }
+  .modal-btn.danger {
+    background: transparent;
+    color: var(--label);
+    border-color: transparent;
+    margin-right: auto;
+  }
+  .modal-btn.danger:hover { color: var(--seg-on); }
+
+  /* ---- SNOOZE OVERLAY ---- */
+  .snooze-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-bg);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .snooze-overlay.open { display: flex; }
+  .snooze-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(22px, 4vw, 56px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.15em;
+    text-align: center;
+    animation: alarmPulse 0.6s ease-in-out infinite;
+  }
+  .snooze-actions { display: flex; gap: 16px; }
+  .snooze-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(12px, 1.4vw, 18px);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 14px 28px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 2px solid #fff;
+    background: transparent;
+    color: #fff;
+    transition: background 0.2s;
+  }
+  .snooze-btn:hover { background: rgba(255,255,255,0.15); }
+  .snooze-btn.dismiss { background: #fff; color: #111; }
+  .snooze-btn.dismiss:hover { opacity: 0.85; }
+
   :fullscreen .clock-shell, :-webkit-full-screen .clock-shell {
     width: 100vw;
   }
@@ -239,18 +391,15 @@
     <div class="main-time">
       <div class="ampm-label" id="ampmLabel">PM</div>
 
-      <!-- Hour tens -->
       <svg class="seg-digit" id="h1" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-        <!-- a top -->   <polygon class="seg" id="h1a" points="8,2 52,2 43,14 17,14"/>
-        <!-- b top-r --> <polygon class="seg" id="h1b" points="54,4 54,47 42,41 42,13"/>
-        <!-- c bot-r --> <polygon class="seg" id="h1c" points="54,53 54,96 42,87 42,59"/>
-        <!-- d bot -->   <polygon class="seg" id="h1d" points="8,98 52,98 43,86 17,86"/>
-        <!-- e bot-l --> <polygon class="seg" id="h1e" points="6,53 6,96 18,87 18,59"/>
-        <!-- f top-l --> <polygon class="seg" id="h1f" points="6,4 6,47 18,41 18,13"/>
-        <!-- g mid -->   <polygon class="seg" id="h1g" points="9,46 51,46 45,56 15,56 9,46"/>
+        <polygon class="seg" id="h1a" points="8,2 52,2 43,14 17,14"/>
+        <polygon class="seg" id="h1b" points="54,4 54,47 42,41 42,13"/>
+        <polygon class="seg" id="h1c" points="54,53 54,96 42,87 42,59"/>
+        <polygon class="seg" id="h1d" points="8,98 52,98 43,86 17,86"/>
+        <polygon class="seg" id="h1e" points="6,53 6,96 18,87 18,59"/>
+        <polygon class="seg" id="h1f" points="6,4 6,47 18,41 18,13"/>
+        <polygon class="seg" id="h1g" points="9,46 51,46 45,56 15,56 9,46"/>
       </svg>
-
-      <!-- Hour units -->
       <svg class="seg-digit" id="h2" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
         <polygon class="seg" id="h2a" points="8,2 52,2 43,14 17,14"/>
         <polygon class="seg" id="h2b" points="54,4 54,47 42,41 42,13"/>
@@ -266,7 +415,6 @@
         <div class="colon-dot"></div>
       </div>
 
-      <!-- Min tens -->
       <svg class="seg-digit" id="m1" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
         <polygon class="seg" id="m1a" points="8,2 52,2 43,14 17,14"/>
         <polygon class="seg" id="m1b" points="54,4 54,47 42,41 42,13"/>
@@ -276,8 +424,6 @@
         <polygon class="seg" id="m1f" points="6,4 6,47 18,41 18,13"/>
         <polygon class="seg" id="m1g" points="9,46 51,46 45,56 15,56 9,46"/>
       </svg>
-
-      <!-- Min units -->
       <svg class="seg-digit" id="m2" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
         <polygon class="seg" id="m2a" points="8,2 52,2 43,14 17,14"/>
         <polygon class="seg" id="m2b" points="54,4 54,47 42,41 42,13"/>
@@ -295,14 +441,11 @@
       <!-- ALARM -->
       <div class="panel-section">
         <div class="alarm-icons">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--seg-on)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--seg-on)" id="bellIcon">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--seg-on)">
-            <path d="M2 19h4l1-3"/>
-            <path d="M5 19v3"/><path d="M9 19v3"/>
-          </svg>
+          <span id="alarmOnBadge" style="font-family:'Orbitron',monospace;font-size:clamp(7px,0.8vw,10px);font-weight:700;color:var(--seg-on);letter-spacing:0.1em;opacity:0.7;display:none">ON</span>
         </div>
         <div class="panel-label">ALARM</div>
         <div class="panel-value">
@@ -315,7 +458,6 @@
             <polygon class="seg" id="a1f" points="6,4 6,47 18,41 18,13"/>
             <polygon class="seg" id="a1g" points="9,46 51,46 45,56 15,56 9,46"/>
           </svg>
-          <div style="color:var(--seg-on);font-size:clamp(14px,2vw,24px);font-weight:700;padding:0 1px;line-height:1;transition:color 0.4s">:</div>
           <svg class="seg-digit small" id="a2" viewBox="0 0 60 100">
             <polygon class="seg" id="a2a" points="8,2 52,2 43,14 17,14"/>
             <polygon class="seg" id="a2b" points="54,4 54,47 42,41 42,13"/>
@@ -325,8 +467,33 @@
             <polygon class="seg" id="a2f" points="6,4 6,47 18,41 18,13"/>
             <polygon class="seg" id="a2g" points="9,46 51,46 45,56 15,56 9,46"/>
           </svg>
+          <div style="color:var(--seg-on);font-size:clamp(12px,1.8vw,22px);font-weight:700;padding:0 2px;line-height:1;transition:color 0.4s">:</div>
+          <svg class="seg-digit small" id="a3" viewBox="0 0 60 100">
+            <polygon class="seg" id="a3a" points="8,2 52,2 43,14 17,14"/>
+            <polygon class="seg" id="a3b" points="54,4 54,47 42,41 42,13"/>
+            <polygon class="seg" id="a3c" points="54,53 54,96 42,87 42,59"/>
+            <polygon class="seg" id="a3d" points="8,98 52,98 43,86 17,86"/>
+            <polygon class="seg" id="a3e" points="6,53 6,96 18,87 18,59"/>
+            <polygon class="seg" id="a3f" points="6,4 6,47 18,41 18,13"/>
+            <polygon class="seg" id="a3g" points="9,46 51,46 45,56 15,56 9,46"/>
+          </svg>
+          <svg class="seg-digit small" id="a4" viewBox="0 0 60 100">
+            <polygon class="seg" id="a4a" points="8,2 52,2 43,14 17,14"/>
+            <polygon class="seg" id="a4b" points="54,4 54,47 42,41 42,13"/>
+            <polygon class="seg" id="a4c" points="54,53 54,96 42,87 42,59"/>
+            <polygon class="seg" id="a4d" points="8,98 52,98 43,86 17,86"/>
+            <polygon class="seg" id="a4e" points="6,53 6,96 18,87 18,59"/>
+            <polygon class="seg" id="a4f" points="6,4 6,47 18,41 18,13"/>
+            <polygon class="seg" id="a4g" points="9,46 51,46 45,56 15,56 9,46"/>
+          </svg>
         </div>
-        <div class="panel-label" style="margin-top:3px;font-size:clamp(6px,0.7vw,9px);opacity:0.6" id="alarmAmpm">AM</div>
+        <div class="panel-label" style="margin-top:3px;font-size:clamp(6px,0.7vw,9px);opacity:0.6" id="alarmAmpm">--</div>
+        <button class="set-alarm-btn" onclick="openAlarmModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          SET ALARM
+        </button>
       </div>
 
       <!-- DATE -->
@@ -409,20 +576,37 @@
   </div>
 </div>
 
+<!-- SET ALARM MODAL -->
+<div class="modal-overlay" id="alarmModal">
+  <div class="modal">
+    <div class="modal-title">SET ALARM</div>
+    <div class="modal-time-input">
+      <input type="time" id="alarmTimeInput" value="06:30">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn danger" id="clearAlarmBtn" onclick="clearAlarm()">CLEAR</button>
+      <button class="modal-btn secondary" onclick="closeAlarmModal()">CANCEL</button>
+      <button class="modal-btn primary" onclick="saveAlarm()">SET</button>
+    </div>
+  </div>
+</div>
+
+<!-- RINGING OVERLAY -->
+<div class="snooze-overlay" id="snoozeOverlay">
+  <div class="snooze-title">⏰ ALARM!</div>
+  <div id="snoozeAlarmTime" style="font-family:'Orbitron',monospace;font-size:clamp(14px,2vw,24px);color:#fff;letter-spacing:0.15em;opacity:0.8"></div>
+  <div class="snooze-actions">
+    <button class="snooze-btn" onclick="snoozeAlarm()">SNOOZE 5 MIN</button>
+    <button class="snooze-btn dismiss" onclick="dismissAlarm()">DISMISS</button>
+  </div>
+</div>
+
 <script>
-// Segment maps: which segments are ON for digits 0-9
-// segments: a(top) b(top-r) c(bot-r) d(bot) e(bot-l) f(top-l) g(mid)
 const DIGITS = {
-  0: [1,1,1,1,1,1,0],
-  1: [0,1,1,0,0,0,0],
-  2: [1,1,0,1,1,0,1],
-  3: [1,1,1,1,0,0,1],
-  4: [0,1,1,0,0,1,1],
-  5: [1,0,1,1,0,1,1],
-  6: [1,0,1,1,1,1,1],
-  7: [1,1,1,0,0,0,0],
-  8: [1,1,1,1,1,1,1],
-  9: [1,1,1,1,0,1,1]
+  0:[1,1,1,1,1,1,0], 1:[0,1,1,0,0,0,0], 2:[1,1,0,1,1,0,1],
+  3:[1,1,1,1,0,0,1], 4:[0,1,1,0,0,1,1], 5:[1,0,1,1,0,1,1],
+  6:[1,0,1,1,1,1,1], 7:[1,1,1,0,0,0,0], 8:[1,1,1,1,1,1,1],
+  9:[1,1,1,1,0,1,1]
 };
 
 function setDigit(prefix, n) {
@@ -434,9 +618,39 @@ function setDigit(prefix, n) {
   });
 }
 
+// ---- ALARM STATE ----
+let alarmHour = null;
+let alarmMin = null;
+let alarmEnabled = false;
+let alarmFired = false;
+let alarmCtx = null;
+let alarmNodes = [];
+let snoozeTimeout = null;
+
+function renderAlarmDisplay() {
+  if (alarmHour === null) {
+    ['a1','a2','a3','a4'].forEach(id => {
+      ['a','b','c','d','e','f','g'].forEach(s => {
+        const el = document.getElementById(id + s);
+        if (el) el.classList.remove('on');
+      });
+    });
+    document.getElementById('alarmAmpm').textContent = '--';
+    document.getElementById('alarmOnBadge').style.display = 'none';
+    return;
+  }
+  const isPM = alarmHour >= 12;
+  let h12 = alarmHour % 12 || 12;
+  setDigit('a1', Math.floor(h12 / 10));
+  setDigit('a2', h12 % 10);
+  setDigit('a3', Math.floor(alarmMin / 10));
+  setDigit('a4', alarmMin % 10);
+  document.getElementById('alarmAmpm').textContent = isPM ? 'PM' : 'AM';
+  document.getElementById('alarmOnBadge').style.display = alarmEnabled ? 'inline' : 'none';
+}
+
+// ---- CLOCK TICK ----
 let colonVisible = true;
-const ALARM_HOUR = 6;
-const ALARM_MIN = 30;
 
 function tick() {
   const now = new Date();
@@ -447,50 +661,154 @@ function tick() {
 
   document.getElementById('ampmLabel').textContent = isPM ? 'PM' : 'AM';
   let h12 = h % 12 || 12;
-
   setDigit('h1', Math.floor(h12 / 10));
   setDigit('h2', h12 % 10);
   setDigit('m1', Math.floor(m / 10));
   setDigit('m2', m % 10);
 
-  // Blink colon
   colonVisible = s % 2 === 0;
   document.querySelectorAll('.colon-dot').forEach(d => {
     d.style.opacity = colonVisible ? '1' : '0.12';
   });
 
-  // Date
   const mo = now.getMonth() + 1;
-  const dt = now.getDate();
-  setDigit('mo1', Math.floor(mo / 10) || 0);
-  setDigit('mo2', mo % 10);
-  // reuse mo2 as date tens, we have 2 digits for month and need date
-  // actually let's show month/date with 1 digit each for month, 2 for date
-  // Let's do month (1-2 digits) and date
   setDigit('mo1', mo < 10 ? 0 : 1);
   setDigit('mo2', mo % 10);
 
-  // Temp: show local ambient fake 28°C (realistic for Malaysia)
-  // Use a fixed plausible value
   setDigit('t1', 2);
   setDigit('t2', 8);
 
-  // Alarm
-  setDigit('a1', Math.floor(ALARM_HOUR / 10) || 0);
-  setDigit('a2', ALARM_HOUR % 10);
-  // alarm minutes shown in a3/a4 but we only have 2 digits for alarm hour
-  // Let's show 6:30 with the available 2 digit slots showing "6" and second showing "3"
-  // redesign: a1=6 a2=3 (just show hour tens for simplicity, matching the photo)
-  // Actually let's show: a1 as tens of hour (0->blank?), a2 as units of hour (6), then we'd need more for minutes
-  // The photo shows "6:30" - let's use 4 small digits for alarm
-  setDigit('a1', 6);
-  setDigit('a2', 3);
+  // Check alarm
+  if (alarmEnabled && !alarmFired && alarmHour !== null) {
+    if (h === alarmHour && m === alarmMin && s === 0) {
+      triggerAlarm();
+    }
+  }
 }
 
-tick();
-setInterval(tick, 500);
+// ---- ALARM SOUND (Web Audio API) ----
+function startAlarmSound() {
+  try {
+    alarmCtx = new (window.AudioContext || window.webkitAudioContext)();
+    playBeepPattern();
+  } catch(e) {}
+}
 
-// Theme
+function playBeepPattern() {
+  if (!alarmCtx) return;
+  let t = alarmCtx.currentTime;
+  const beepDurations = [0.12, 0.12, 0.12, 0.4];
+  const beepGaps =      [0.08, 0.08, 0.08, 0.6];
+  const freq = 880;
+  const repeatEvery = beepDurations.reduce((a,b)=>a+b,0) + beepGaps.reduce((a,b)=>a+b,0);
+
+  function scheduleGroup(startT) {
+    beepDurations.forEach((dur, i) => {
+      const osc = alarmCtx.createOscillator();
+      const gain = alarmCtx.createGain();
+      osc.connect(gain);
+      gain.connect(alarmCtx.destination);
+      osc.type = 'square';
+      osc.frequency.value = i % 2 === 0 ? freq : freq * 1.2;
+      gain.gain.setValueAtTime(0, startT);
+      gain.gain.linearRampToValueAtTime(0.3, startT + 0.01);
+      gain.gain.setValueAtTime(0.3, startT + dur - 0.01);
+      gain.gain.linearRampToValueAtTime(0, startT + dur);
+      osc.start(startT);
+      osc.stop(startT + dur + 0.05);
+      alarmNodes.push(osc);
+      startT += dur + beepGaps[i];
+    });
+    return startT;
+  }
+
+  // Schedule 60 seconds worth of beeps
+  for (let i = 0; i < Math.ceil(60 / repeatEvery); i++) {
+    t = scheduleGroup(t + (i === 0 ? 0 : 0));
+  }
+}
+
+function stopAlarmSound() {
+  alarmNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  alarmNodes = [];
+  if (alarmCtx) { try { alarmCtx.close(); } catch(e){} alarmCtx = null; }
+}
+
+// ---- TRIGGER / DISMISS / SNOOZE ----
+function triggerAlarm() {
+  alarmFired = true;
+  startAlarmSound();
+  const h12 = alarmHour % 12 || 12;
+  const ampm = alarmHour >= 12 ? 'PM' : 'AM';
+  const mm = String(alarmMin).padStart(2,'0');
+  document.getElementById('snoozeAlarmTime').textContent = h12 + ':' + mm + ' ' + ampm;
+  document.getElementById('snoozeOverlay').classList.add('open');
+  document.querySelectorAll('.seg-digit').forEach(d => d.classList.add('ringing'));
+  document.getElementById('bellIcon').classList.add('ringing-bell');
+}
+
+function dismissAlarm() {
+  stopAlarmSound();
+  if (snoozeTimeout) { clearTimeout(snoozeTimeout); snoozeTimeout = null; }
+  document.getElementById('snoozeOverlay').classList.remove('open');
+  document.querySelectorAll('.seg-digit').forEach(d => d.classList.remove('ringing'));
+  document.getElementById('bellIcon').classList.remove('ringing-bell');
+  alarmFired = false;
+}
+
+function snoozeAlarm() {
+  stopAlarmSound();
+  document.getElementById('snoozeOverlay').classList.remove('open');
+  document.querySelectorAll('.seg-digit').forEach(d => d.classList.remove('ringing'));
+  document.getElementById('bellIcon').classList.remove('ringing-bell');
+  alarmFired = false;
+  // Re-trigger in 5 minutes
+  snoozeTimeout = setTimeout(() => { triggerAlarm(); }, 5 * 60 * 1000);
+}
+
+// ---- MODAL ----
+function openAlarmModal() {
+  if (alarmHour !== null) {
+    const hh = String(alarmHour).padStart(2,'0');
+    const mm = String(alarmMin).padStart(2,'0');
+    document.getElementById('alarmTimeInput').value = hh + ':' + mm;
+  }
+  document.getElementById('alarmModal').classList.add('open');
+}
+
+function closeAlarmModal() {
+  document.getElementById('alarmModal').classList.remove('open');
+}
+
+function saveAlarm() {
+  const val = document.getElementById('alarmTimeInput').value;
+  if (!val) return;
+  const [h, m] = val.split(':').map(Number);
+  alarmHour = h;
+  alarmMin = m;
+  alarmEnabled = true;
+  alarmFired = false;
+  renderAlarmDisplay();
+  closeAlarmModal();
+}
+
+function clearAlarm() {
+  alarmHour = null;
+  alarmMin = null;
+  alarmEnabled = false;
+  alarmFired = false;
+  stopAlarmSound();
+  if (snoozeTimeout) { clearTimeout(snoozeTimeout); snoozeTimeout = null; }
+  renderAlarmDisplay();
+  closeAlarmModal();
+}
+
+// Close modal on overlay click
+document.getElementById('alarmModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAlarmModal();
+});
+
+// ---- THEME ----
 let dark = false;
 function toggleTheme() {
   dark = !dark;
@@ -504,7 +822,7 @@ function toggleTheme() {
   }
 }
 
-// Fullscreen
+// ---- FULLSCREEN ----
 function toggleFullscreen() {
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen).call(document.documentElement);
@@ -516,13 +834,16 @@ function toggleFullscreen() {
     document.getElementById('fsIcon').innerHTML = '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
   }
 }
-
 document.addEventListener('fullscreenchange', () => {
   if (!document.fullscreenElement) {
     document.getElementById('fsBtnLabel').textContent = 'FULL SCREEN';
     document.getElementById('fsIcon').innerHTML = '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
   }
 });
+
+renderAlarmDisplay();
+tick();
+setInterval(tick, 500);
 </script>
 </body>
 </html>
