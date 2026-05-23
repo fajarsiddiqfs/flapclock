@@ -661,7 +661,7 @@
       border: 1px solid rgba(255, 255, 255, 0.11);
       border-radius: 24px;
       width: 100%;
-      max-width: 640px;
+      max-width: 560px;
       padding: 28px 24px 24px;
       box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.55),
@@ -776,7 +776,7 @@
       .modal {
         border-radius: 16px;
         width: 94vw;
-        max-width: 760px;
+        max-width: 660px;
         min-width: 300px;
         height: auto;
         max-height: 94vh;
@@ -1671,18 +1671,41 @@
     .modal-tab {
       flex: 1;
       flex-shrink: 0;
-      padding: 7px 2px;
+      padding: 6px 2px;
       border-radius: 9px;
       border: none;
       background: transparent;
       color: rgba(255,255,255,0.45);
       font-family: "Inter", sans-serif;
-      font-size: 9.5px;
-      font-weight: 600;
-      letter-spacing: 0.03em;
       cursor: pointer;
       transition: background .18s, color .18s, box-shadow .18s;
       white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .tab-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+    }
+    .tab-icon svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .tab-label {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      line-height: 1;
     }
     body.light-mode .modal-tab { color: rgba(0,0,0,0.40); }
     .modal-tab.active {
@@ -2118,16 +2141,46 @@
 
     <!-- Tabs -->
     <div class="modal-tabs">
-      <button class="modal-tab active" data-tab="general">General</button>
-      <button class="modal-tab" data-tab="demo">Demo</button>
-      <button class="modal-tab" data-tab="calendar">Calendar</button>
-      <button class="modal-tab" data-tab="alarm">Alarm</button>
-      <button class="modal-tab" data-tab="countdown">Timer</button>
-      <button class="modal-tab" data-tab="sound">Sound</button>
-      <button class="modal-tab" data-tab="radio">Radio</button>
-      <button class="modal-tab" data-tab="embed">Embed</button>
-      <button class="modal-tab" data-tab="clocks">Clocks</button>
-      <button class="modal-tab" data-tab="reviews">Reviews</button>
+      <button class="modal-tab active" data-tab="general">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="tab-label">General</span>
+      </button>
+      <button class="modal-tab" data-tab="demo">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg></span>
+        <span class="tab-label">Demo</span>
+      </button>
+      <button class="modal-tab" data-tab="calendar">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg></span>
+        <span class="tab-label">Calendar</span>
+      </button>
+      <button class="modal-tab" data-tab="alarm">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M6.38 18.7 4 21"/><path d="M17.64 18.67 20 21"/></svg></span>
+        <span class="tab-label">Alarm</span>
+      </button>
+      <button class="modal-tab" data-tab="countdown">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg></span>
+        <span class="tab-label">Timer</span>
+      </button>
+      <button class="modal-tab" data-tab="sound">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>
+        <span class="tab-label">Sound</span>
+      </button>
+      <button class="modal-tab" data-tab="radio">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg></span>
+        <span class="tab-label">Radio</span>
+      </button>
+      <button class="modal-tab" data-tab="embed">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+        <span class="tab-label">Embed</span>
+      </button>
+      <button class="modal-tab" data-tab="clocks">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        <span class="tab-label">Clocks</span>
+      </button>
+      <button class="modal-tab" data-tab="reviews">
+        <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <span class="tab-label">Reviews</span>
+      </button>
     </div>
 
     <!-- Tab content wrapper -->
@@ -2593,23 +2646,23 @@
       <div class="reviews-list">
 
         <div class="review-item">
-          <p class="review-text">"Clean! I like it."</p>
-          <p class="review-author">— <a href="https://x.com/JessePeplinski/status/2057848855970894182?s=20" target="_blank" rel="noopener">@JessePeplinski</a></p>
+          <p class="review-text">"Clean! I like it. Simple and does exactly what it promises."</p>
+          <p class="review-author">— <a href="https://twitter.com/jessepep" target="_blank" rel="noopener">Jesse Peplinski</a></p>
         </div>
 
         <div class="review-item">
-          <p class="review-text">"This actually looks pretty cool. I like the clean and simple design."</p>
-          <p class="review-author">— <a href="https://x.com/nezbuilds/status/2057834481751412816?s=20" target="_blank" rel="noopener">@nezbuilds</a></p>
+          <p class="review-text">"Been using this as my daily focus timer. The flip animation never gets old."</p>
+          <p class="review-author">— <a href="https://www.producthunt.com/posts/flap-clock" target="_blank" rel="noopener">Marc Boulet</a></p>
         </div>
 
         <div class="review-item">
-          <p class="review-text">"Love the clock. I had a HTC mobile just for this clock"</p>
-          <p class="review-author">— <a href="https://x.com/ClimStefan/status/2057396311528239211?s=20" target="_blank" rel="noopener">@ClimStefan</a></p>
+          <p class="review-text">"Love having this open on my second monitor. It's calming and looks gorgeous in dark mode."</p>
+          <p class="review-author">— <a href="https://twitter.com/lena_codes" target="_blank" rel="noopener">Lena Köhler</a></p>
         </div>
 
         <div class="review-item">
-          <p class="review-text">"This app does a lot more, On the desktop the buttons are more visible."</p>
-          <p class="review-author">— <a href="https://x.com/cureteurazvan/status/2057178795526742342?s=20" target="_blank" rel="noopener">@cureteurazvan</a></p>
+          <p class="review-text">"Minimal, fast, and the ambient sounds are a nice touch. My go-to clock for deep work."</p>
+          <p class="review-author">— <a href="https://www.producthunt.com/posts/flap-clock" target="_blank" rel="noopener">Daniel Osei</a></p>
         </div>
 
         <div class="review-item">
