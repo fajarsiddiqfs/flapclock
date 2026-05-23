@@ -1741,7 +1741,7 @@
       gap: 14px;
       position: relative;
     }
-    .changelog-item:not(.last)::before {
+    .changelog-item:not(:last-child)::before {
       content: '';
       position: absolute;
       left: 5px;
@@ -1750,7 +1750,7 @@
       width: 1px;
       background: rgba(255,255,255,0.10);
     }
-    body.light-mode .changelog-item:not(.last)::before {
+    body.light-mode .changelog-item:not(:last-child)::before {
       background: rgba(0,0,0,0.10);
     }
     .changelog-dot {
@@ -2788,7 +2788,7 @@
           </div>
         </div>
 
-        <div class="changelog-item last">
+        <div class="changelog-item">
           <div class="changelog-dot"></div>
           <div class="changelog-content">
             <span class="changelog-date">24 May 2026</span>
@@ -2796,7 +2796,7 @@
           </div>
         </div>
 
-        <div class="changelog-item last">
+        <div class="changelog-item">
           <div class="changelog-dot"></div>
           <div class="changelog-content">
             <span class="changelog-date">25 May 2026</span>
