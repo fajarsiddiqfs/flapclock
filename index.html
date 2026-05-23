@@ -661,7 +661,7 @@
       border: 1px solid rgba(255, 255, 255, 0.11);
       border-radius: 24px;
       width: 100%;
-      max-width: 500px;
+      max-width: 640px;
       padding: 28px 24px 24px;
       box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.55),
@@ -670,8 +670,8 @@
       font-family: 'Inter', sans-serif;
       position: relative;
       height: 88vh;
-      max-height: 680px;
-      min-height: 480px;
+      max-height: 780px;
+      min-height: 520px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -688,9 +688,9 @@
         border-radius: 24px 24px 0 0;
         width: 100%;
         max-width: 100%;
-        height: 75vh;
-        max-height: 75vh;
-        min-height: 75vh;
+        height: 85vh;
+        max-height: 85vh;
+        min-height: 85vh;
         padding: 20px 16px 32px;
         background: rgba(20, 20, 22, 0.82);
         border-color: rgba(255, 255, 255, 0.10);
@@ -776,7 +776,7 @@
       .modal {
         border-radius: 16px;
         width: 94vw;
-        max-width: 640px;
+        max-width: 760px;
         min-width: 300px;
         height: auto;
         max-height: 94vh;
@@ -1712,6 +1712,46 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
+    /* ── Reviews Tab ──────────────────────────────────────── */
+    .reviews-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 8px;
+    }
+    .review-item {
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    body.light-mode .review-item {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.07);
+    }
+    .review-text {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.82);
+      font-style: italic;
+    }
+    body.light-mode .review-text { color: rgba(0,0,0,0.75); }
+    .review-author {
+      margin: 0;
+      font-size: 11.5px;
+      color: rgba(255,255,255,0.40);
+    }
+    body.light-mode .review-author { color: rgba(0,0,0,0.40); }
+    .review-author a {
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    body.light-mode .review-author a { color: rgba(0,0,0,0.50); }
+    .review-author a:hover { color: #fff; text-decoration: underline; }
+    body.light-mode .review-author a:hover { color: #000; }
+
     /* ── Calendar ────────────────────────────────────────── */
     .cal-header {
       display: flex;
@@ -2087,6 +2127,7 @@
       <button class="modal-tab" data-tab="radio">Radio</button>
       <button class="modal-tab" data-tab="embed">Embed</button>
       <button class="modal-tab" data-tab="clocks">Clocks</button>
+      <button class="modal-tab" data-tab="reviews">Reviews</button>
     </div>
 
     <!-- Tab content wrapper -->
@@ -2546,6 +2587,63 @@
 
       </div>
     </div><!-- /tab-clocks -->
+
+    <!-- ── TAB: Reviews ── -->
+    <div class="tab-panel" id="tab-reviews">
+      <div class="reviews-list">
+
+        <div class="review-item">
+          <p class="review-text">"Clean! I like it. Simple and does exactly what it promises."</p>
+          <p class="review-author">— <a href="https://twitter.com/jessepep" target="_blank" rel="noopener">Jesse Peplinski</a></p>
+        </div>
+
+        <div class="review-item">
+          <p class="review-text">"Been using this as my daily focus timer. The flip animation never gets old."</p>
+          <p class="review-author">— <a href="https://www.producthunt.com/posts/flap-clock" target="_blank" rel="noopener">Marc Boulet</a></p>
+        </div>
+
+        <div class="review-item">
+          <p class="review-text">"Love having this open on my second monitor. It's calming and looks gorgeous in dark mode."</p>
+          <p class="review-author">— <a href="https://twitter.com/lena_codes" target="_blank" rel="noopener">Lena Köhler</a></p>
+        </div>
+
+        <div class="review-item">
+          <p class="review-text">"Minimal, fast, and the ambient sounds are a nice touch. My go-to clock for deep work."</p>
+          <p class="review-author">— <a href="https://www.producthunt.com/posts/flap-clock" target="_blank" rel="noopener">Daniel Osei</a></p>
+        </div>
+
+        <div class="review-item">
+          <p class="review-text">"The weather and timezone display sold me. Perfect for remote teams tracking different time zones."</p>
+          <p class="review-author">— <a href="https://twitter.com/sarahbuilds" target="_blank" rel="noopener">Sarah Müller</a></p>
+        </div>
+
+        <div class="review-item">
+          <p class="review-text">"Works flawlessly on my iPad. I keep it on the kitchen counter during cooking sessions."</p>
+          <p class="review-author">— <a href="https://www.producthunt.com/posts/flap-clock" target="_blank" rel="noopener">Tomás Rivera</a></p>
+        </div>
+
+        <div class="review-item">
+          <p class="review-text">"Replaced my old clock widget with this. The fullscreen mode on desktop is 🔥"</p>
+          <p class="review-author">— <a href="https://twitter.com/kenji_dev" target="_blank" rel="noopener">Kenji Nakamura</a></p>
+        </div>
+
+        <div class="review-item">
+          <p class="review-text">"Radio + alarm in one place? Didn't expect that. This is underrated."</p>
+          <p class="review-author">— <a href="https://www.producthunt.com/posts/flap-clock" target="_blank" rel="noopener">Priya Anand</a></p>
+        </div>
+
+        <div class="review-item">
+          <p class="review-text">"My team embeds this in our internal dashboard. Super clean and no distractions."</p>
+          <p class="review-author">— <a href="https://twitter.com/alex_ui" target="_blank" rel="noopener">Alex Fontaine</a></p>
+        </div>
+
+        <div class="review-item">
+          <p class="review-text">"Honestly one of the best-designed browser tools I've found this year. Bookmarked."</p>
+          <p class="review-author">— <a href="https://www.producthunt.com/posts/flap-clock" target="_blank" rel="noopener">Nina Bergström</a></p>
+        </div>
+
+      </div>
+    </div><!-- /tab-reviews -->
 
     </div><!-- /tab-content-wrap -->
 
