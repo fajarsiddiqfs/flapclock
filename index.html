@@ -2579,7 +2579,7 @@
       <!-- Live Preview -->
       <div class="embed-preview-wrap">
         <div class="embed-preview-frame">
-          <iframe id="embed-preview-iframe" src="https://flapclock.com/embed" frameborder="0" scrolling="no" allow="geolocation"></iframe>
+          <iframe id="embed-preview-iframe" frameborder="0" scrolling="no" allow="geolocation"></iframe>
         </div>
       </div>
 
@@ -3343,13 +3343,34 @@
           .catch(() => setLoc('Location Unavailable'));
       });
   }
-  if ('geolocation' in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      p  => { reverseGeocode(p.coords.latitude, p.coords.longitude); fetchWeather(p.coords.latitude, p.coords.longitude); },
-      () => ipFallback(),
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 }
-    );
-  } else { ipFallback(); }
+  function requestGeo() {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        p => {
+          const lat = p.coords.latitude, lon = p.coords.longitude;
+          try { localStorage.setItem('fc_geo', JSON.stringify({ lat, lon, ts: Date.now() })); } catch(e) {}
+          reverseGeocode(lat, lon);
+          fetchWeather(lat, lon);
+        },
+        () => ipFallback(),
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 }
+      );
+    } else { ipFallback(); }
+  }
+  (function initGeo() {
+    try {
+      const cached = localStorage.getItem('fc_geo');
+      if (cached) {
+        const { lat, lon, ts } = JSON.parse(cached);
+        if (Date.now() - ts < 300000) {          // 5-min cache — skip prompt
+          reverseGeocode(lat, lon);
+          fetchWeather(lat, lon);
+          return;
+        }
+      }
+    } catch(e) {}
+    requestGeo();
+  })();
 
   /* ── Settings modal ─────────────────────────────────── */
   const settingsBtn   = document.getElementById('settings-btn');
@@ -3500,7 +3521,8 @@
     function refresh() {
       const url = buildURL();
       const iframe = document.getElementById('embed-preview-iframe');
-      if (iframe) iframe.src = url;
+      // Only update src if the iframe has already been lazy-loaded (Embed tab opened)
+      if (iframe && iframe.getAttribute('src')) iframe.src = url;
       const code = document.getElementById('embed-gen-code');
       if (code) code.value = buildIframe();
       // sync UI
@@ -3717,6 +3739,12 @@
       btn.classList.add('active');
       document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
       if (btn.dataset.tab === 'calendar') renderCalendar();
+      if (btn.dataset.tab === 'embed') {
+        const embedIframe = document.getElementById('embed-preview-iframe');
+        if (embedIframe && !embedIframe.getAttribute('src')) {
+          embedIframe.src = 'https://flapclock.com/embed';
+        }
+      }
       playClick();
     });
   });
