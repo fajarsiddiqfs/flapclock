@@ -2221,34 +2221,45 @@
     .gk-save-btn:hover { background: #16a34a; }
 
     /* ── Cat Overlay ─────────────────────────────────────── */
+    @keyframes gk-slide-in {
+      from { transform: translateX(100%); }
+      to   { transform: translateX(0); }
+    }
     #gk-overlay {
       display: none;
       position: fixed;
       inset: 0;
       z-index: 99999;
       pointer-events: none;
+      overflow: hidden;
     }
     #gk-overlay.active { display: block; }
     #gk-cat-video {
       position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(600px, 90vw);
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       pointer-events: none;
       user-select: none;
+      animation: gk-slide-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
     #gk-timer {
       position: absolute;
       top: 20px;
-      left: 28px;
-      font-size: clamp(48px, 8vw, 96px);
-      font-weight: 900;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(18px, 3vw, 28px);
+      font-weight: 700;
       color: #fff;
-      text-shadow: 0 2px 20px rgba(0,0,0,0.7);
+      text-shadow: 0 1px 10px rgba(0,0,0,0.8);
       font-variant-numeric: tabular-nums;
       pointer-events: none;
-      letter-spacing: -2px;
+      letter-spacing: 1px;
+      background: rgba(0,0,0,0.35);
+      padding: 4px 14px;
+      border-radius: 20px;
+      white-space: nowrap;
     }
 
   </style>
@@ -6075,6 +6086,21 @@ reddit.com</textarea>
   var gkTimeout  = null; // setTimeout for initial delay
   var gkActive   = false;
 
+  // Preload both videos silently so they're buffered and ready to play instantly
+  var preloadedVideos = {};
+  CAT_VIDEOS.forEach(function(src) {
+    var v = document.createElement('video');
+    v.src = src;
+    v.muted = true;
+    v.preload = 'auto';
+    v.playsInline = true;
+    v.loop = true;
+    v.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
+    document.body.appendChild(v);
+    v.load();
+    preloadedVideos[src] = v;
+  });
+
   function pickRandomVideo() {
     return CAT_VIDEOS[Math.floor(Math.random() * CAT_VIDEOS.length)];
   }
@@ -6089,8 +6115,9 @@ reddit.com</textarea>
     if (gkActive) return;
     gkActive = true;
     var src = pickRandomVideo();
+    // Use the preloaded video's current buffer by copying its src
     catVideo.src = src;
-    catVideo.load();
+    catVideo.currentTime = 0;
     catVideo.play().catch(function(){});
     overlay.classList.add('active');
     var remaining = breakSeconds;
