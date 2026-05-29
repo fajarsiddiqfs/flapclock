@@ -2422,13 +2422,6 @@
           </label>
           <span class="gk-toggle-label">Enable cat gatekeeper</span>
         </div>
-        <div class="gk-row">
-          <label class="gk-field-label" title="One per line or comma-separated">Target sites</label>
-          <textarea class="gk-textarea" id="gk-sites" placeholder="youtube.com&#10;twitter.com&#10;reddit.com" rows="4">youtube.com
-twitter.com
-reddit.com</textarea>
-          <div class="gk-hint">Enter one site per line — e.g. youtube.com or x.com</div>
-        </div>
         <div class="gk-btn-row">
           <button class="gk-shoo-btn" id="gk-shoo">Dismiss Cat Now</button>
           <button class="gk-save-btn" id="gk-save">Save</button>
@@ -6035,10 +6028,9 @@ reddit.com</textarea>
   var GK_STORAGE_KEY = 'gk_settings';
 
   var defaults = {
-    delay: 5,      // minutes before cat appears
-    breakTime: 1,  // minutes cat stays (break)
-    enabled: true,
-    sites: 'youtube.com\ntwitter.com\nreddit.com'
+    delay: 5,
+    breakTime: 1,
+    enabled: true
   };
 
   function loadSettings() {
@@ -6055,10 +6047,9 @@ reddit.com</textarea>
 
   // Populate UI from settings
   function applySettingsToUI(s) {
-    document.getElementById('gk-delay').value   = s.delay;
-    document.getElementById('gk-break').value   = s.breakTime;
+    document.getElementById('gk-delay').value     = s.delay;
+    document.getElementById('gk-break').value     = s.breakTime;
     document.getElementById('gk-enabled').checked = s.enabled;
-    document.getElementById('gk-sites').value   = s.sites;
   }
 
   // Read UI into settings object
@@ -6066,16 +6057,8 @@ reddit.com</textarea>
     return {
       delay:     Math.max(1, parseInt(document.getElementById('gk-delay').value) || 5),
       breakTime: Math.max(1, parseInt(document.getElementById('gk-break').value) || 1),
-      enabled:   document.getElementById('gk-enabled').checked,
-      sites:     document.getElementById('gk-sites').value.trim()
+      enabled:   document.getElementById('gk-enabled').checked
     };
-  }
-
-  // Parse sites list
-  function parseSites(sitesStr) {
-    return sitesStr.split(/[\n,]+/)
-      .map(function(s) { return s.trim().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]; })
-      .filter(Boolean);
   }
 
   // Overlay logic
