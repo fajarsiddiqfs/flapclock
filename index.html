@@ -2241,7 +2241,7 @@
       height: 100%;
       object-fit: contain;
       object-position: center bottom;
-      transform: scale(0.70);
+      transform: scale(0.50);
       transform-origin: center bottom;
       pointer-events: none;
       user-select: none;
@@ -3016,14 +3016,6 @@
           <div class="changelog-content">
             <span class="changelog-date">26 May 2026</span>
             <p class="changelog-task"><span class="changelog-version">v5.4</span> Update the Celsius and Fahrenheit</p>
-          </div>
-        </div>
-
-        <div class="changelog-item">
-          <div class="changelog-dot"></div>
-          <div class="changelog-content">
-            <span class="changelog-date">29 May 2026</span>
-            <p class="changelog-task"><span class="changelog-version">v5.5</span> Added Cat Gatekeeper Section & Cat Video</p>
           </div>
         </div>
 
@@ -6020,7 +6012,7 @@
 <!-- ── Cat Gatekeeper Overlay ── -->
 <div id="gk-overlay">
   <video id="gk-cat-video" autoplay loop muted playsinline></video>
-  <video id="gk-cat-video-b" muted playsinline loop style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;transform:scale(0.70);transform-origin:center bottom;pointer-events:none;user-select:none;opacity:0;transition:opacity 0.08s ease;"></video>
+  <video id="gk-cat-video-b" muted playsinline loop style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;transform:scale(0.50);transform-origin:center bottom;pointer-events:none;user-select:none;opacity:0;transition:opacity 0.08s ease;"></video>
   <div id="gk-timer">0:00</div>
   <button id="gk-shoo" style="position:absolute;bottom:32px;left:50%;transform:translateX(-50%);padding:10px 24px;border:none;border-radius:999px;background:rgba(255,255,255,0.18);color:#fff;font-size:15px;font-weight:600;cursor:pointer;backdrop-filter:blur(8px);pointer-events:auto;">Skip Break</button>
 </div>
@@ -6032,7 +6024,7 @@
   // Embed the two webm videos as blob URLs from uploaded files.
   // Since we can't ship external files in a single HTML, we use
   // fetch-on-demand from same origin. The two videos are expected
-  // to be served alongside this file as neko02-enter.webm and neko2.webm.
+  // to be served alongside this file as jackos.webm and jackos-sleep.webm.
   // Falls back gracefully if missing.
 
   var CAT_VIDEOS = ['jackos'];
