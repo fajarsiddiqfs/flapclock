@@ -2239,7 +2239,10 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      object-position: center bottom;
+      transform: scale(0.82);
+      transform-origin: center bottom;
       pointer-events: none;
       user-select: none;
       animation: gk-slide-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -2249,7 +2252,7 @@
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: clamp(18px, 3vw, 28px);
+      font-size: clamp(32px, 5vw, 52px);
       font-weight: 700;
       color: #fff;
       text-shadow: 0 1px 10px rgba(0,0,0,0.8);
@@ -6084,8 +6087,11 @@
     preloadedVideos[src] = v;
   });
 
+  // Pick one video for this entire session — never switches until page is refreshed
+  var sessionVideo = CAT_VIDEOS[Math.floor(Math.random() * CAT_VIDEOS.length)];
+
   function pickRandomVideo() {
-    return CAT_VIDEOS[Math.floor(Math.random() * CAT_VIDEOS.length)];
+    return sessionVideo;
   }
 
   function formatTime(seconds) {
