@@ -6026,7 +6026,7 @@
   // to be served alongside this file as neko02-enter.webm and neko2.webm.
   // Falls back gracefully if missing.
 
-  var CAT_VIDEOS = ['jackos.webm'];
+  var CAT_VIDEOS = ['jackos'];
 
   var GK_STORAGE_KEY = 'gk_settings';
 
@@ -6072,25 +6072,52 @@
   var gkTimeout  = null;
   var gkActive   = false;
 
-  // All videos to preload (including the sleep transition)
-  var ALL_VIDEOS = ['jackos.webm', 'jackos-sleep.webm'];
+  // Detect best supported format once
+  var supportsWebm = catVideo.canPlayType('video/webm') !== '';
+  var ext = supportsWebm ? '.webm' : '.mp4';
 
-  // Preload all videos silently on page load so they play instantly
+  // All base names to preload
+  var ALL_BASES = ['jackos', 'jackos-sleep'];
+
+  // Preload both videos silently in the best format for this browser
   var preloadedVideos = {};
-  ALL_VIDEOS.forEach(function(src) {
+  ALL_BASES.forEach(function(base) {
     var v = document.createElement('video');
-    v.src = src;
     v.muted = true;
     v.preload = 'auto';
     v.playsInline = true;
     v.loop = true;
     v.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
+    // Add both sources — browser picks what it supports
+    var srcWebm = document.createElement('source');
+    srcWebm.src  = base + '.webm';
+    srcWebm.type = 'video/webm';
+    var srcMp4 = document.createElement('source');
+    srcMp4.src  = base + '.mp4';
+    srcMp4.type = 'video/mp4';
+    v.appendChild(srcWebm);
+    v.appendChild(srcMp4);
     document.body.appendChild(v);
     v.load();
-    preloadedVideos[src] = v;
+    preloadedVideos[base] = v;
   });
 
-  // Pick a random video each time the cat appears
+  // Helper: set video sources (webm first, mp4 fallback)
+  function setVideoSrc(videoEl, base) {
+    // Remove existing sources
+    while (videoEl.firstChild) videoEl.removeChild(videoEl.firstChild);
+    var srcWebm = document.createElement('source');
+    srcWebm.src  = base + '.webm';
+    srcWebm.type = 'video/webm';
+    var srcMp4 = document.createElement('source');
+    srcMp4.src  = base + '.mp4';
+    srcMp4.type = 'video/mp4';
+    videoEl.appendChild(srcWebm);
+    videoEl.appendChild(srcMp4);
+    videoEl.load();
+  }
+
+  // Pick a random base name each time the cat appears
   function pickRandomVideo() {
     return CAT_VIDEOS[Math.floor(Math.random() * CAT_VIDEOS.length)];
   }
@@ -6104,12 +6131,12 @@
   function showCat(breakSeconds) {
     if (gkActive) return;
     gkActive = true;
-    var src = pickRandomVideo();
-    var isJackos = (src === 'jackos.webm');
+    var base = pickRandomVideo();
+    var isJackos = (base === 'jackos');
 
-    // Play the entry video — non-looping for jackos so we can detect when it ends
-    catVideo.loop = isJackos ? false : true;
-    catVideo.src = src;
+    // Entry video — non-looping so we detect when it ends
+    catVideo.loop = false;
+    setVideoSrc(catVideo, base);
     catVideo.currentTime = 0;
     catVideo.play().catch(function(){});
 
@@ -6118,11 +6145,12 @@
       catVideo.onended = function() {
         catVideo.onended = null;
         catVideo.loop = true;
-        catVideo.src = 'jackos-sleep.webm';
+        setVideoSrc(catVideo, 'jackos-sleep');
         catVideo.currentTime = 0;
         catVideo.play().catch(function(){});
       };
     } else {
+      catVideo.loop = true;
       catVideo.onended = null;
     }
 
@@ -6144,7 +6172,8 @@
     catVideo.onended = null;
     overlay.classList.remove('active');
     catVideo.pause();
-    catVideo.src = '';
+    while (catVideo.firstChild) catVideo.removeChild(catVideo.firstChild);
+    catVideo.load();
     scheduleGatekeeper();
   }
 
@@ -6156,7 +6185,8 @@
       catVideo.onended = null;
       overlay.classList.remove('active');
       catVideo.pause();
-      catVideo.src = '';
+      while (catVideo.firstChild) catVideo.removeChild(catVideo.firstChild);
+      catVideo.load();
     }
   }
 
