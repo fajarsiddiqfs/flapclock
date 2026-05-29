@@ -2241,7 +2241,7 @@
       height: 100%;
       object-fit: contain;
       object-position: center bottom;
-      transform: scale(0.82);
+      transform: scale(0.70);
       transform-origin: center bottom;
       pointer-events: none;
       user-select: none;
@@ -6087,11 +6087,9 @@
     preloadedVideos[src] = v;
   });
 
-  // Pick one video for this entire session — never switches until page is refreshed
-  var sessionVideo = CAT_VIDEOS[Math.floor(Math.random() * CAT_VIDEOS.length)];
-
+  // Pick a random video each time the cat appears
   function pickRandomVideo() {
-    return sessionVideo;
+    return CAT_VIDEOS[Math.floor(Math.random() * CAT_VIDEOS.length)];
   }
 
   function formatTime(seconds) {
