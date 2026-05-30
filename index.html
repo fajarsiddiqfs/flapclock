@@ -2453,6 +2453,9 @@
           <div class="gk-cat-option" data-cat="farah">
             <span class="gk-cat-name">Farah</span>
           </div>
+          <div class="gk-cat-option" data-cat="farid">
+            <span class="gk-cat-name">Farid</span>
+          </div>
         </div>
         <div class="gk-inline-row">
           <label class="gk-field-label">Show after (minutes)</label>
@@ -6135,7 +6138,7 @@
   var ext = supportsWebm ? '.webm' : '.mp4';
 
   // All base names to preload
-  var ALL_BASES = ['jackos', 'jackos-sleep', 'farok', 'farah'];
+  var ALL_BASES = ['jackos', 'jackos-sleep', 'farok', 'farah', 'farid'];
 
   // Preload all videos silently in the best format for this browser
   var preloadedVideos = {};
@@ -6209,42 +6212,32 @@
       catVideo.style.opacity = '1';
     });
 
-    // Jackos: crossfade to sleep clip when entry ends
+    // Jackos: preload sleep immediately so it's ready for instant cut
     if (hasSleep) {
+      catVideoB.style.transition = 'none';
+      catVideoB.style.opacity = '0';
+      setVideoSrc(catVideoB, 'jackos-sleep');
+      catVideoB.loop = true;
+      catVideoB.currentTime = 0;
+      catVideoB.load();
+
       catVideo.onended = function() {
         catVideo.onended = null;
-
-        // Prepare sleep on B, hidden
-        catVideoB.style.transition = 'none';
-        catVideoB.style.opacity = '0';
-        setVideoSrc(catVideoB, 'jackos-sleep');
-        catVideoB.loop = true;
-        catVideoB.currentTime = 0;
-
-        catVideoB.play().then(function() {
-          // Crossfade: B fades in, A fades out simultaneously
-          catVideoB.style.transition = 'opacity 0.4s ease';
-          catVideoB.style.opacity = '1';
-          catVideo.style.transition = 'opacity 0.4s ease';
-          catVideo.style.opacity = '0';
-
-          setTimeout(function() {
-            // Move sleep to main element, hide B
-            catVideo.pause();
-            catVideo.style.transition = 'none';
-            catVideo.style.opacity = '1';
-            setVideoSrc(catVideo, 'jackos-sleep');
-            catVideo.loop = true;
-            catVideo.play().catch(function(){});
-            catVideoB.pause();
-            catVideoB.style.transition = 'none';
-            catVideoB.style.opacity = '0';
-          }, 450);
-        }).catch(function(){
-          // Fallback: instant swap
-          catVideo.loop = true;
+        // Instant cut — sleep already preloaded
+        catVideo.pause();
+        catVideo.style.transition = 'none';
+        catVideo.style.opacity = '0';
+        catVideoB.style.opacity = '1';
+        catVideoB.play().then(function(){
+          // Move to main element cleanly
           setVideoSrc(catVideo, 'jackos-sleep');
-          catVideo.currentTime = 0;
+          catVideo.loop = true;
+          catVideo.play().catch(function(){});
+          catVideoB.pause();
+          catVideoB.style.opacity = '0';
+        }).catch(function(){
+          setVideoSrc(catVideo, 'jackos-sleep');
+          catVideo.loop = true;
           catVideo.style.opacity = '1';
           catVideo.play().catch(function(){});
         });
@@ -6365,7 +6358,11 @@
     var s = readSettingsFromUI();
     saveSettings(s);
     cancelGatekeeper();
-    if (s.enabled) scheduleGatekeeper();
+    if (s.enabled) {
+      scheduleGatekeeper();
+      // Show a preview of the selected cat immediately
+      showCat(s.breakTime * 60);
+    }
     // Brief feedback
     var btn = document.getElementById('gk-save');
     var orig = btn.textContent;
