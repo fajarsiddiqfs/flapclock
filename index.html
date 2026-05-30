@@ -6157,7 +6157,7 @@
   // All base names to preload
   var ALL_BASES = ['jackos', 'jackos-sleep', 'farok', 'farah', 'farid'];
 
-  // Preload all videos silently in the best format for this browser
+  // Preload all videos into hidden elements and start buffering immediately
   var preloadedVideos = {};
   ALL_BASES.forEach(function(base) {
     var v = document.createElement('video');
@@ -6165,7 +6165,7 @@
     v.preload = 'auto';
     v.playsInline = true;
     v.loop = true;
-    v.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
+    v.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0.001;pointer-events:none;top:0;left:0;z-index:-1;';
     var srcHevc = document.createElement('source');
     srcHevc.src  = base + '-hevc.mp4';
     srcHevc.type = 'video/mp4; codecs="hvc1"';
@@ -6176,6 +6176,8 @@
     v.appendChild(srcWebm);
     document.body.appendChild(v);
     v.load();
+    // Start playing silently to force full buffer on desktop
+    v.play().catch(function(){});
     preloadedVideos[base] = v;
   });
 
@@ -6208,70 +6210,85 @@
     var base = s.selectedCat || 'jackos';
     var hasSleep = (base === 'jackos');
 
-    // Reset both videos
+    // Reset visible videos
     catVideo.style.transition = 'none';
     catVideo.style.opacity = '0';
     catVideoB.style.transition = 'none';
     catVideoB.style.opacity = '0';
-
-    setVideoSrc(catVideo, base);
     catVideo.loop = !hasSleep;
+    catVideo.onended = null;
+
+    // Instantly swap src from preloaded buffer — browser reuses cached data
+    var pre = preloadedVideos[base];
+    if (pre) {
+      pre.pause();
+      pre.currentTime = 0;
+    }
+    setVideoSrc(catVideo, base);
     catVideo.currentTime = 0;
 
-    overlay.classList.add('active');
-
-    var playPromise = catVideo.play();
-    if (playPromise !== undefined) {
-      playPromise.then(function() {
-        requestAnimationFrame(function() {
-          catVideo.style.transition = 'opacity 0.5s ease';
-          catVideo.style.opacity = '1';
-        });
-      }).catch(function(err) {
-        // iOS blocked autoplay — show anyway, try again on next touch
-        catVideo.style.opacity = '1';
-        document.addEventListener('touchstart', function retry() {
-          catVideo.play().catch(function(){});
-          document.removeEventListener('touchstart', retry);
-        });
-      });
-    } else {
-      catVideo.style.opacity = '1';
-    }
-
-    // Jackos: preload sleep immediately so it's ready for instant cut
+    // Preload sleep clip into catVideoB immediately while entry plays
     if (hasSleep) {
-      catVideoB.style.transition = 'none';
-      catVideoB.style.opacity = '0';
+      var preSleep = preloadedVideos['jackos-sleep'];
+      if (preSleep) { preSleep.pause(); preSleep.currentTime = 0; }
       setVideoSrc(catVideoB, 'jackos-sleep');
       catVideoB.loop = true;
       catVideoB.currentTime = 0;
       catVideoB.load();
+    }
 
+    overlay.classList.add('active');
+
+    function doPlay() {
+      var p = catVideo.play();
+      if (p !== undefined) {
+        p.then(function() {
+          requestAnimationFrame(function() {
+            catVideo.style.transition = 'opacity 0.4s ease';
+            catVideo.style.opacity = '1';
+          });
+        }).catch(function() {
+          catVideo.style.opacity = '1';
+        });
+      } else {
+        catVideo.style.opacity = '1';
+      }
+    }
+
+    // If already buffered play instantly, else wait for enough data
+    if (catVideo.readyState >= 3) {
+      doPlay();
+    } else {
+      catVideo.addEventListener('canplay', function onCanPlay() {
+        catVideo.removeEventListener('canplay', onCanPlay);
+        doPlay();
+      });
+      catVideo.load();
+    }
+
+    // Jackos: instant cut to sleep when entry ends (already preloaded above)
+    if (hasSleep) {
       catVideo.onended = function() {
         catVideo.onended = null;
-        // Instant cut — sleep already preloaded
         catVideo.pause();
-        catVideo.style.transition = 'none';
         catVideo.style.opacity = '0';
         catVideoB.style.opacity = '1';
-        catVideoB.play().then(function(){
-          // Move to main element cleanly
-          setVideoSrc(catVideo, 'jackos-sleep');
-          catVideo.loop = true;
-          catVideo.play().catch(function(){});
-          catVideoB.pause();
-          catVideoB.style.opacity = '0';
-        }).catch(function(){
-          setVideoSrc(catVideo, 'jackos-sleep');
-          catVideo.loop = true;
-          catVideo.style.opacity = '1';
-          catVideo.play().catch(function(){});
-        });
+        var pb = catVideoB.play();
+        if (pb !== undefined) {
+          pb.then(function() {
+            setVideoSrc(catVideo, 'jackos-sleep');
+            catVideo.loop = true;
+            catVideo.play().catch(function(){});
+            catVideoB.pause();
+            catVideoB.style.opacity = '0';
+          }).catch(function() {
+            setVideoSrc(catVideo, 'jackos-sleep');
+            catVideo.loop = true;
+            catVideo.style.opacity = '1';
+            catVideo.play().catch(function(){});
+          });
+        }
       };
-    } else {
-      catVideo.loop = true;
-      catVideo.onended = null;
     }
 
     // Date-based timer — survives tab sleep/wake
@@ -6280,10 +6297,7 @@
     function tick() {
       if (!gkActive) return;
       var remaining = Math.ceil((endTime - Date.now()) / 1000);
-      if (remaining <= 0) {
-        hideCat();
-        return;
-      }
+      if (remaining <= 0) { hideCat(); return; }
       timerEl.textContent = formatTime(remaining);
       gkTimer = setTimeout(tick, 250);
     }
