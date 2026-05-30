@@ -6118,12 +6118,7 @@
   }
 
   // Cat picker click handler
-  document.getElementById('gk-cat-picker').addEventListener('click', function(e) {
-    var opt = e.target.closest('.gk-cat-option');
-    if (!opt) return;
-    document.querySelectorAll('.gk-cat-option').forEach(function(el) { el.classList.remove('selected'); });
-    opt.classList.add('selected');
-  });
+  // (cat picker click handler registered below after all variables are defined)
 
   // Overlay logic
   var overlay    = document.getElementById('gk-overlay');
@@ -6373,6 +6368,31 @@
   // Shoo button
   document.getElementById('gk-shoo').addEventListener('click', function() {
     hideCat();
+  });
+
+  // Cat picker — show preview immediately on name click if screensaver is enabled
+  document.getElementById('gk-cat-picker').addEventListener('click', function(e) {
+    var opt = e.target.closest('.gk-cat-option');
+    if (!opt) return;
+    document.querySelectorAll('.gk-cat-option').forEach(function(el) { el.classList.remove('selected'); });
+    opt.classList.add('selected');
+    var enabled = document.getElementById('gk-enabled').checked;
+    if (enabled) {
+      var s = readSettingsFromUI();
+      saveSettings(s);
+      clearTimeout(gkTimer);
+      clearTimeout(gkTimeout);
+      gkActive = false;
+      catVideo.onended = null;
+      if (catVideo._visibilityHandler) {
+        document.removeEventListener('visibilitychange', catVideo._visibilityHandler);
+        catVideo._visibilityHandler = null;
+      }
+      overlay.classList.remove('active');
+      catVideo.pause();
+      while (catVideo.firstChild) catVideo.removeChild(catVideo.firstChild);
+      showCat(s.breakTime * 60);
+    }
   });
 
   // Also allow clicking the overlay to dismiss
