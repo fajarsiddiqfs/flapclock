@@ -2248,9 +2248,13 @@
     .gk-save-btn:hover { background: #16a34a; }
 
     /* ── Cat Overlay ─────────────────────────────────────── */
-    @keyframes gk-slide-in {
-      from { transform: translateX(100%); }
-      to   { transform: translateX(0); }
+    @keyframes gk-fade-in {
+      from { opacity: 0; transform: scaleX(-1) translateY(30px); }
+      to   { opacity: 1; transform: scaleX(-1) translateY(0); }
+    }
+    @keyframes gk-fade-out {
+      from { opacity: 1; transform: scaleX(-1) translateY(0); }
+      to   { opacity: 0; transform: scaleX(-1) translateY(30px); }
     }
     #gk-overlay {
       display: none;
@@ -2271,9 +2275,10 @@
       pointer-events: none;
       user-select: none;
       transform: scaleX(-1);
+      opacity: 0;
     }
     #gk-cat-video {
-      animation: gk-slide-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation: none;
     }
     #gk-timer {
       position: absolute;
@@ -6187,36 +6192,47 @@
     var base = s.selectedCat || 'jackos';
     var hasSleep = (base === 'jackos');
 
-    // Use preloaded video directly to avoid lag
-    var preloaded = preloadedVideos[base];
-    if (preloaded) {
-      preloaded.currentTime = 0;
-      preloaded.loop = !hasSleep;
-      preloaded.play().catch(function(){});
-      // Swap src from preloaded into visible element
-      setVideoSrc(catVideo, base);
-    } else {
-      setVideoSrc(catVideo, base);
-    }
+    // Reset both videos
+    catVideo.style.transition = 'none';
+    catVideo.style.opacity = '0';
+    catVideoB.style.transition = 'none';
+    catVideoB.style.opacity = '0';
+
+    setVideoSrc(catVideo, base);
     catVideo.loop = !hasSleep;
     catVideo.currentTime = 0;
-    catVideo.play().catch(function(){});
 
-    // Only Jackos has a sleep clip — crossfade to it when entry ends
+    overlay.classList.add('active');
+
+    catVideo.play().then(function() {
+      // Fade in smoothly once playing
+      catVideo.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      catVideo.style.opacity = '1';
+    }).catch(function(){
+      catVideo.style.opacity = '1';
+    });
+
+    // Jackos: crossfade to sleep clip when entry ends
     if (hasSleep) {
       catVideo.onended = function() {
         catVideo.onended = null;
+
+        // Prepare sleep on B, hidden
         catVideoB.style.transition = 'none';
         catVideoB.style.opacity = '0';
         setVideoSrc(catVideoB, 'jackos-sleep');
         catVideoB.loop = true;
         catVideoB.currentTime = 0;
+
         catVideoB.play().then(function() {
-          catVideoB.style.transition = 'opacity 0.08s ease';
+          // Crossfade: B fades in, A fades out simultaneously
+          catVideoB.style.transition = 'opacity 0.4s ease';
           catVideoB.style.opacity = '1';
-          catVideo.style.transition = 'opacity 0.08s ease';
+          catVideo.style.transition = 'opacity 0.4s ease';
           catVideo.style.opacity = '0';
+
           setTimeout(function() {
+            // Move sleep to main element, hide B
             catVideo.pause();
             catVideo.style.transition = 'none';
             catVideo.style.opacity = '1';
@@ -6224,12 +6240,15 @@
             catVideo.loop = true;
             catVideo.play().catch(function(){});
             catVideoB.pause();
+            catVideoB.style.transition = 'none';
             catVideoB.style.opacity = '0';
-          }, 100);
+          }, 450);
         }).catch(function(){
+          // Fallback: instant swap
           catVideo.loop = true;
           setVideoSrc(catVideo, 'jackos-sleep');
           catVideo.currentTime = 0;
+          catVideo.style.opacity = '1';
           catVideo.play().catch(function(){});
         });
       };
@@ -6238,9 +6257,7 @@
       catVideo.onended = null;
     }
 
-    overlay.classList.add('active');
-
-    // Use Date-based timer so it survives tab sleep/wake correctly
+    // Date-based timer — survives tab sleep/wake
     var endTime = Date.now() + breakSeconds * 1000;
 
     function tick() {
@@ -6251,26 +6268,21 @@
         return;
       }
       timerEl.textContent = formatTime(remaining);
-      gkTimer = setTimeout(tick, 250); // poll 4x/sec so wake-up feels instant
+      gkTimer = setTimeout(tick, 250);
     }
 
-    // Resume timer correctly after screen wake
     function onVisibilityChange() {
       if (document.visibilityState === 'visible' && gkActive) {
         clearTimeout(gkTimer);
-        // If break time already expired while screen was off, hide immediately
         if (Date.now() >= endTime) {
           hideCat();
         } else {
-          // Resume video playback (iOS pauses videos on lock)
           catVideo.play().catch(function(){});
           tick();
         }
       }
     }
     document.addEventListener('visibilitychange', onVisibilityChange);
-
-    // Store cleanup ref so hideCat can remove the listener
     catVideo._visibilityHandler = onVisibilityChange;
 
     timerEl.textContent = formatTime(breakSeconds);
@@ -6285,16 +6297,21 @@
       document.removeEventListener('visibilitychange', catVideo._visibilityHandler);
       catVideo._visibilityHandler = null;
     }
-    overlay.classList.remove('active');
-    catVideo.pause();
-    catVideo.style.transition = 'none';
-    catVideo.style.opacity = '1';
-    while (catVideo.firstChild) catVideo.removeChild(catVideo.firstChild);
-    catVideo.load();
-    catVideoB.pause();
+    // Fade out smoothly, then hide
+    catVideo.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    catVideo.style.opacity = '0';
+    catVideoB.style.transition = 'opacity 0.5s ease';
     catVideoB.style.opacity = '0';
-    while (catVideoB.firstChild) catVideoB.removeChild(catVideoB.firstChild);
-    scheduleGatekeeper();
+    setTimeout(function() {
+      overlay.classList.remove('active');
+      catVideo.pause();
+      catVideo.style.transition = 'none';
+      while (catVideo.firstChild) catVideo.removeChild(catVideo.firstChild);
+      catVideo.load();
+      catVideoB.pause();
+      while (catVideoB.firstChild) catVideoB.removeChild(catVideoB.firstChild);
+      scheduleGatekeeper();
+    }, 520);
   }
 
   function cancelGatekeeper() {
