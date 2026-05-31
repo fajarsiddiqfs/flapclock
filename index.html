@@ -6399,16 +6399,24 @@
     var s = readSettingsFromUI();
     saveSettings(s);
     cancelGatekeeper();
-    if (s.enabled) {
-      scheduleGatekeeper();
-      // Show a preview of the selected cat immediately
-      showCat(s.breakTime * 60);
+    if (s.enabled) scheduleGatekeeper();
+
+    // Close the settings modal
+    var settingsModal = document.getElementById('settings-modal');
+    var settingsBtn   = document.querySelector('.settings-btn') || document.querySelector('[data-modal="settings"]');
+    var modalEl       = settingsModal ? settingsModal.querySelector('.modal') : null;
+    if (modalEl) {
+      modalEl.style.transition = 'transform 0.3s ease';
+      modalEl.style.transform  = 'translateY(100%)';
+      setTimeout(function() {
+        settingsModal.classList.remove('open');
+        if (settingsBtn) settingsBtn.classList.remove('active');
+        modalEl.style.transition = '';
+        modalEl.style.transform  = '';
+      }, 300);
+    } else if (settingsModal) {
+      settingsModal.classList.remove('open');
     }
-    // Brief feedback
-    var btn = document.getElementById('gk-save');
-    var orig = btn.textContent;
-    btn.textContent = 'Saved ✓';
-    setTimeout(function() { btn.textContent = orig; }, 1200);
   });
 
   // Shoo button
