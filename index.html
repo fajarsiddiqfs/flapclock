@@ -6424,29 +6424,30 @@
     hideCat();
   });
 
-  // Cat picker — show preview immediately on name click if screensaver is enabled
+  // Cat picker — auto-enable toggle and show preview on name click
   document.getElementById('gk-cat-picker').addEventListener('click', function(e) {
     var opt = e.target.closest('.gk-cat-option');
     if (!opt) return;
     document.querySelectorAll('.gk-cat-option').forEach(function(el) { el.classList.remove('selected'); });
     opt.classList.add('selected');
-    var enabled = document.getElementById('gk-enabled').checked;
-    if (enabled) {
-      var s = readSettingsFromUI();
-      saveSettings(s);
-      clearTimeout(gkTimer);
-      clearTimeout(gkTimeout);
-      gkActive = false;
-      catVideo.onended = null;
-      if (catVideo._visibilityHandler) {
-        document.removeEventListener('visibilitychange', catVideo._visibilityHandler);
-        catVideo._visibilityHandler = null;
-      }
-      overlay.classList.remove('active');
-      catVideo.pause();
-      while (catVideo.firstChild) catVideo.removeChild(catVideo.firstChild);
-      showCat(s.breakTime * 60);
+
+    // Auto-switch on the toggle
+    document.getElementById('gk-enabled').checked = true;
+
+    var s = readSettingsFromUI();
+    saveSettings(s);
+    clearTimeout(gkTimer);
+    clearTimeout(gkTimeout);
+    gkActive = false;
+    catVideo.onended = null;
+    if (catVideo._visibilityHandler) {
+      document.removeEventListener('visibilitychange', catVideo._visibilityHandler);
+      catVideo._visibilityHandler = null;
     }
+    overlay.classList.remove('active');
+    catVideo.pause();
+    while (catVideo.firstChild) catVideo.removeChild(catVideo.firstChild);
+    showCat(s.breakTime * 60);
   });
 
   // Also allow clicking the overlay to dismiss
