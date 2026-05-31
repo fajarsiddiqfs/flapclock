@@ -6067,7 +6067,7 @@
 
 <!-- ── Cat Gatekeeper Overlay ── -->
 <div id="gk-overlay">
-  <video id="gk-cat-video" autoplay loop muted playsinline></video>
+  <video id="gk-cat-video" muted playsinline></video>
   <video id="gk-cat-video-b" muted playsinline loop style="opacity:0;transition:opacity 0.08s ease;"></video>
   <div id="gk-timer">0:00</div>
   <button id="gk-shoo" style="position:absolute;bottom:32px;left:50%;transform:translateX(-50%);padding:12px 28px;border:none;border-radius:999px;background:rgba(255,255,255,0.18);color:#fff;font-size:15px;font-weight:600;cursor:pointer;backdrop-filter:blur(8px);pointer-events:auto;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">Skip Break</button>
@@ -6091,13 +6091,16 @@
   function unlockVideos() {
     if (iosUnlocked) return;
     iosUnlocked = true;
+    // Play a silent frame then pause to unlock iOS video autoplay
     var allVids = document.querySelectorAll('#gk-cat-video, #gk-cat-video-b');
     allVids.forEach(function(v) {
-      v.play().then(function() { v.pause(); }).catch(function(){});
+      var p = v.play();
+      if (p !== undefined) p.then(function() { v.pause(); }).catch(function(){});
     });
   }
-  document.addEventListener('touchstart', unlockVideos, { once: true });
-  document.addEventListener('click', unlockVideos, { once: true });
+  // Only unlock on real user interaction, not on page load
+  document.addEventListener('touchstart', unlockVideos, { once: true, passive: true });
+  document.addEventListener('pointerdown', unlockVideos, { once: true });
 
   var defaults = {
     delay: 5,
@@ -6177,8 +6180,6 @@
     v.appendChild(srcWebm);
     document.body.appendChild(v);
     v.load();
-    // Start playing silently to force full buffer on desktop
-    v.play().catch(function(){});
     preloadedVideos[base] = v;
   });
 
